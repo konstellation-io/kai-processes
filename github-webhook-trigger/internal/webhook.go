@@ -24,7 +24,20 @@ const (
 	workflowDispatchEvent = "workflow_dispatch"
 )
 
-func InitWebhook(events []string, githubSecret string, kaiSDK sdk.KaiSDK) {
+//go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
+
+type Webhook interface {
+	InitWebhook(events []string, githubSecret string, kaiSDK sdk.KaiSDK)
+}
+
+type GithubWebhook struct {
+}
+
+func NewGithubWebhook() Webhook {
+	return &GithubWebhook{}
+}
+
+func (gw *GithubWebhook) InitWebhook(events []string, githubSecret string, kaiSDK sdk.KaiSDK) {
 	githubEvents := getEventsFromConfig(events)
 
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {

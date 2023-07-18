@@ -39,14 +39,30 @@ func NewGithubWebhook() Webhook {
 
 func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) {
 	githubEvents := getEventsFromConfig(eventConfig)
-	hook, err := github.New(github.Options.Secret(githubSecret))
+	parser, err := github.New(github.Options.Secret(githubSecret))
 	if err != nil {
 		kaiSDK.Logger.Error(err, "Error creating webhook")
 		os.Exit(1)
 	}
 
-	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		payload, err := hook.Parse(r, githubEvents...)
+	http.HandleFunc(path, gw.handleEventRequest(parser, githubEvents, kaiSDK))
+
+	server := &http.Server{
+		Addr:              ":3000",
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	err = server.ListenAndServe()
+	if err != nil {
+		kaiSDK.Logger.Error(err, "Error listening and serving")
+		os.Exit(1)
+	}
+}
+
+func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents []github.Event,
+	kaiSDK sdk.KaiSDK) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		payload, err := parser.Parse(r, githubEvents...)
 		if err != nil && !errors.Is(err, github.ErrEventNotFound) {
 			kaiSDK.Logger.Error(err, "Error parsing webhook")
 			return
@@ -69,17 +85,6 @@ func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, ka
 			kaiSDK.Logger.Error(err, "Error triggering pipeline")
 			return
 		}
-	})
-
-	server := &http.Server{
-		Addr:              ":3000",
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-
-	err = server.ListenAndServe()
-	if err != nil {
-		kaiSDK.Logger.Error(err, "Error listening and serving")
-		os.Exit(1)
 	}
 }
 

@@ -1,48 +1,69 @@
 package webhook_test
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
-	"github.com/konstellation-io/kai-processes/github-webhook-trigger/internal/webhook"
+	"github.com/go-logr/logr/testr"
+	"github.com/go-playground/webhooks/v6/github"
 	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/types/known/structpb"
+
+	"github.com/konstellation-io/kai-processes/github-webhook-trigger/internal/webhook"
 )
 
-func TestNewGithubWebhook(t *testing.T) {
-	t.Run("should create a new GithubWebhook", func(t *testing.T) {
-		webhook := webhook.NewGithubWebhook()
+type GithubWebhookSuite struct {
+	suite.Suite
 
-		assert.NotNil(t, webhook)
-	})
+	githubWebhook *webhook.GithubWebhook
+	kaiSdk        sdk.KaiSDK
+	messaging     *sdkMocks.MessagingMock
 }
 
-func TestInitWebhook(t *testing.T) {
-	t.Run("should init webhook", func(t *testing.T) {
-		ghWebhook := webhook.NewGithubWebhook()
+func TestGithubWebhookSuite(t *testing.T) {
+	suite.Run(t, new(GithubWebhookSuite))
+}
 
-		eventConfig := "push, pull_request, release,workflow_run,workflow_dispatch"
-		githubSecret := "mockedSecret"
-		eventURL := "mockedUrl"
-		m, err := structpb.NewValue(map[string]interface{}{
-			"eventUrl": eventURL,
-			"event":    webhook.PushEvent,
-		})
-		require.NoError(t, err)
+func (s *GithubWebhookSuite) SetupSuite() {
+	s.githubWebhook = webhook.NewTestGithubWebhook()
 
-		messagingMock := sdkMocks.NewMessagingMock(t)
-		sdkMock := sdk.KaiSDK{
-			Messaging: messagingMock,
-		}
-		messagingMock.On("SendOutputWithRequestID", m, mock.AnythingOfType("int")).Return(nil)
+	s.messaging = sdkMocks.NewMessagingMock(s.T())
 
-		ghWebhook.InitWebhook(eventConfig, githubSecret, sdkMock)
+	s.kaiSdk = sdk.KaiSDK{
+		Logger:    testr.New(s.T()),
+		Messaging: s.messaging,
+	}
+}
 
-		messagingMock.AssertExpectations(t)
-
-		assert.NotNil(t, ghWebhook)
+func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
+	// Given
+	payload, err := os.Open("../../testdata/push_event.json")
+	s.Require().NoError(err)
+	defer func() {
+		_ = payload.Close()
+	}()
+	request := httptest.NewRequest(http.MethodPost, "/webhooks", payload)
+	request.Header.Set("X-GitHub-Event", "push")
+	responseWriter := httptest.NewRecorder()
+	parser, err := github.New()
+	s.Require().NoError(err)
+	expectedResponse, err := structpb.NewValue(map[string]interface{}{
+		"eventUrl": "https://github.com/binkkatal/sample_app",
+		"event":    "push",
 	})
+	s.Require().NoError(err)
+
+	s.messaging.On("SendOutputWithRequestID",
+		expectedResponse,
+		mock.AnythingOfType("string")).
+		Return(nil)
+
+	// WHEN
+	handlerFunction := s.githubWebhook.HandleEventRequest(parser, []github.Event{github.PushEvent}, s.kaiSdk)
+	handlerFunction(responseWriter, request)
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	webhook "github.com/konstellation-io/kai-processes/github-webhook-trigger/internal"
+	"github.com/konstellation-io/kai-processes/github-webhook-trigger/internal/webhook"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"

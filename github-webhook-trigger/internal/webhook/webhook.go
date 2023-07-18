@@ -18,15 +18,14 @@ const (
 )
 
 const (
-	pushEvent             = "push"
-	pullRequestEvent      = "pull_request"
-	releaseEvent          = "release"
-	workflowRunEvent      = "workflow_run"
-	workflowDispatchEvent = "workflow_dispatch"
+	PushEvent             = "push"
+	PullRequestEvent      = "pull_request"
+	ReleaseEvent          = "release"
+	WorkflowRunEvent      = "workflow_run"
+	WorkflowDispatchEvent = "workflow_dispatch"
 )
 
 //go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
-
 type Webhook interface {
 	InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK)
 }
@@ -40,14 +39,13 @@ func NewGithubWebhook() Webhook {
 
 func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) {
 	githubEvents := getEventsFromConfig(eventConfig)
+	hook, err := github.New(github.Options.Secret(githubSecret))
+	if err != nil {
+		kaiSDK.Logger.Error(err, "Error creating webhook")
+		os.Exit(1)
+	}
 
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		hook, err := github.New(github.Options.Secret(githubSecret))
-		if err != nil {
-			kaiSDK.Logger.Error(err, "Error creating webhook")
-			os.Exit(1)
-		}
-
 		payload, err := hook.Parse(r, githubEvents...)
 		if err != nil && !errors.Is(err, github.ErrEventNotFound) {
 			kaiSDK.Logger.Error(err, "Error parsing webhook")
@@ -56,15 +54,15 @@ func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, ka
 
 		switch payload := payload.(type) {
 		case github.PushPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, pushEvent)
+			err = triggerPipeline(kaiSDK, payload.Repository.URL, PushEvent)
 		case github.PullRequestPayload:
-			err = triggerPipeline(kaiSDK, payload.PullRequest.URL, pullRequestEvent)
+			err = triggerPipeline(kaiSDK, payload.PullRequest.URL, PullRequestEvent)
 		case github.ReleasePayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, releaseEvent)
+			err = triggerPipeline(kaiSDK, payload.Repository.URL, ReleaseEvent)
 		case github.WorkflowRunPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, workflowRunEvent)
+			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowRunEvent)
 		case github.WorkflowDispatchPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, workflowDispatchEvent)
+			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowDispatchEvent)
 		}
 
 		if err != nil {
@@ -78,7 +76,7 @@ func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, ka
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		kaiSDK.Logger.Error(err, "Error listening and serving")
 		os.Exit(1)
@@ -86,20 +84,20 @@ func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, ka
 }
 
 func getEventsFromConfig(eventConfig string) []github.Event {
-	events := strings.Split(eventConfig, ",")
+	events := strings.Split(strings.ReplaceAll(eventConfig, " ", ""), ",")
 	totalEvents := map[string]github.Event{} // use map to avoid duplicates
 
 	for _, event := range events {
-		switch strings.TrimSpace(event) {
-		case pushEvent:
+		switch event {
+		case PushEvent:
 			totalEvents[event] = github.PushEvent
-		case pullRequestEvent:
+		case PullRequestEvent:
 			totalEvents[event] = github.PullRequestEvent
-		case releaseEvent:
+		case ReleaseEvent:
 			totalEvents[event] = github.ReleaseEvent
-		case workflowRunEvent:
+		case WorkflowRunEvent:
 			totalEvents[event] = github.WorkflowRunEvent
-		case workflowDispatchEvent:
+		case WorkflowDispatchEvent:
 			totalEvents[event] = github.WorkflowDispatchEvent
 		}
 	}

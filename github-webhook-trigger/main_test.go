@@ -50,7 +50,6 @@ func (s *MainSuite) TestInitializer() {
 	initializer(s.kaiSdkMock)
 }
 
-// Esperar a que David me pase lo que captura el exit status 1
 func (s *MainSuite) TestInitializerNoConfigError() {
 	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
 	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)

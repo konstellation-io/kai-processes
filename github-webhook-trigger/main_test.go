@@ -8,45 +8,47 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	"github.com/nats-io/nats.go"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestInitializer(t *testing.T) {
-	t.Run("should init webhook", func(t *testing.T) {
-		rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
-		cleanedEvents := []string{"push", "pull_request", "release", "workflow_run", "workflow_dispatch"}
-		githubSecret := "mockedSecret"
+type MainSuite struct {
+	suite.Suite
 
-		centralizedConfigMock := sdkMocks.NewCentralizedConfigMock(t)
-		sdkMock := sdk.KaiSDK{
-			CentralizedConfig: centralizedConfigMock,
-		}
-		centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
-		centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
-
-		webhookMock := mocks.NewWebhookMock(t)
-		webhookMock.On("InitWebhook", cleanedEvents, githubSecret, sdkMock)
-
-		initFunc := initializer(webhookMock)
-		initFunc(sdkMock)
-
-		webhookMock.AssertExpectations(t)
-	})
+	kaiSdkMock            sdk.KaiSDK
+	githubWebhookMock     *mocks.WebhookMock
+	centralizedConfigMock *sdkMocks.CentralizedConfigMock
 }
 
-// Preguntar mañana si usamos el monkey patch o no
-func TestInitializerNoEventsConfiguredError(t *testing.T) {
-	t.Run("should exit if no events configured", func(t *testing.T) {
-		centralizedConfigMock := sdkMocks.NewCentralizedConfigMock(t)
-		sdkMock := sdk.KaiSDK{
-			CentralizedConfig: centralizedConfigMock,
-		}
-		centralizedConfigMock.On("GetConfig", "webhook_events").Return("", nats.ErrKeyNotFound)
+func TestMainSuite(t *testing.T) {
+	suite.Run(t, new(MainSuite))
+}
 
-		webhookMock := mocks.NewWebhookMock(t)
+func (s *MainSuite) SetupSuite() {
+	s.githubWebhookMock = mocks.NewWebhookMock(s.T())
+	s.centralizedConfigMock = sdkMocks.NewCentralizedConfigMock(s.T())
+	s.kaiSdkMock = sdk.KaiSDK{
+		CentralizedConfig: s.centralizedConfigMock,
+	}
+}
 
-		initFunc := initializer(webhookMock)
-		initFunc(sdkMock)
+func (s *MainSuite) TearDownTest() {
+	s.githubWebhookMock.AssertExpectations(s.T())
+	s.centralizedConfigMock.AssertExpectations(s.T())
+}
 
-		webhookMock.AssertExpectations(t)
-	})
+func (s *MainSuite) TestInitializer() {
+	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
+	githubSecret := "mockedSecret"
+
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+
+	initializer(s.kaiSdkMock)
+}
+
+// Esperar a que David me pase lo que captura el exit status 1
+func (s *MainSuite) TestInitializerNoEventsConfiguredError() {
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+
+	initializer(s.kaiSdkMock)
 }

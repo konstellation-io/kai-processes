@@ -65,7 +65,6 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 
 	for _, tc := range allTests {
 		s.T().Run(tc.name, func(t *testing.T) {
-
 			payload, err := os.Open(tc.payloadPath)
 			s.Require().NoError(err)
 			defer func() {

@@ -37,8 +37,9 @@ func NewGithubWebhook() Webhook {
 	return &GithubWebhook{}
 }
 
-func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) {
+func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sdk.KaiSDK) {
 	githubEvents := getEventsFromConfig(eventConfig)
+
 	parser, err := github.New(github.Options.Secret(githubSecret))
 	if err != nil {
 		kaiSDK.Logger.Error(err, "Error creating webhook")

@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	webhookEvents string
-	githubSecret  string
+	webhookEvents string //nolint: gochecknoglobals
+	githubSecret  string //nolint: gochecknoglobals
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {
@@ -31,14 +31,14 @@ func initializer(kaiSDK sdk.KaiSDK) {
 	}
 }
 
-func runnerFunc(webhook webhook.Webhook) trigger.RunnerFunc {
+func runnerFunc(wh webhook.Webhook) trigger.RunnerFunc {
 	return func(tr *trigger.Runner, sdk sdk.KaiSDK) {
-		webhook.InitWebhook(webhookEvents, githubSecret, sdk)
+		wh.InitWebhook(webhookEvents, githubSecret, sdk)
 	}
 }
 
 func main() {
-	webhook := webhook.NewGithubWebhook()
-	r := runner.NewRunner().TriggerRunner().WithInitializer(initializer).WithRunner(runnerFunc(webhook))
+	wh := webhook.NewGithubWebhook()
+	r := runner.NewRunner().TriggerRunner().WithInitializer(initializer).WithRunner(runnerFunc(wh))
 	r.Run()
 }

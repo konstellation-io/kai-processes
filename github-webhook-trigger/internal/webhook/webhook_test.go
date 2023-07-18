@@ -43,7 +43,7 @@ func (s *GithubWebhookSuite) SetupSuite() {
 type test struct {
 	name             string
 	payloadPath      string
-	expecetdEventURL string
+	expectedEventURL string
 	expectedEvent    string
 	githubEvents     []github.Event
 }
@@ -54,9 +54,37 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 		{
 			name:             "push event",
 			payloadPath:      "../../testdata/push_event.json",
-			expecetdEventURL: "https://github.com/binkkatal/sample_app",
+			expectedEventURL: "https://github.com/binkkatal/sample_app",
 			expectedEvent:    "push",
 			githubEvents:     []github.Event{github.PushEvent},
+		},
+		{
+			name:             "pull request event",
+			payloadPath:      "../../testdata/pull_request.json",
+			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo/pulls/1",
+			expectedEvent:    "pull_request",
+			githubEvents:     []github.Event{github.PullRequestEvent},
+		},
+		{
+			name:             "release event",
+			payloadPath:      "../../testdata/release.json",
+			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEvent:    "release",
+			githubEvents:     []github.Event{github.ReleaseEvent},
+		},
+		{
+			name:             "workflow dispatch event",
+			payloadPath:      "../../testdata/workflow_dispatch.json",
+			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEvent:    "workflow_dispatch",
+			githubEvents:     []github.Event{github.WorkflowDispatchEvent},
+		},
+		{
+			name:             "workflow run event",
+			payloadPath:      "../../testdata/workflow_run.json",
+			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEvent:    "workflow_run",
+			githubEvents:     []github.Event{github.WorkflowRunEvent},
 		},
 	}
 
@@ -71,11 +99,11 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 				_ = payload.Close()
 			}()
 			request := httptest.NewRequest(http.MethodPost, "/webhooks", payload)
-			request.Header.Set("X-GitHub-Event", "push")
+			request.Header.Set("X-GitHub-Event", tc.expectedEvent)
 			responseWriter := httptest.NewRecorder()
 
 			expectedResponse, err := structpb.NewValue(map[string]interface{}{
-				"eventUrl": tc.expecetdEventURL,
+				"eventUrl": tc.expectedEventURL,
 				"event":    tc.expectedEvent,
 			})
 			s.Require().NoError(err)

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"os"
 	"testing"
 
+	"bou.ke/monkey"
 	"github.com/konstellation-io/kai-processes/github-webhook-trigger/mocks"
 	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
@@ -34,6 +36,8 @@ func (s *MainSuite) SetupSuite() {
 func (s *MainSuite) TearDownTest() {
 	s.githubWebhookMock.AssertExpectations(s.T())
 	s.centralizedConfigMock.AssertExpectations(s.T())
+	s.githubWebhookMock.ExpectedCalls = nil
+	s.centralizedConfigMock.ExpectedCalls = nil
 }
 
 func (s *MainSuite) TestInitializer() {
@@ -47,8 +51,18 @@ func (s *MainSuite) TestInitializer() {
 }
 
 // Esperar a que David me pase lo que captura el exit status 1
-func (s *MainSuite) TestInitializerNoEventsConfiguredError() {
+func (s *MainSuite) TestInitializerNoConfigError() {
 	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+
+	fakeExitCalled := 0
+	fakeExit := func(int) {
+		fakeExitCalled++
+	}
+
+	patch := monkey.Patch(os.Exit, fakeExit)
+	defer patch.Unpatch()
 
 	initializer(s.kaiSdkMock)
+	s.Equal(2, fakeExitCalled)
 }

@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-logr/logr v1.2.4
 	github.com/go-playground/webhooks/v6 v6.2.0

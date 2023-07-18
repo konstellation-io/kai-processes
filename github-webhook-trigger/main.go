@@ -17,6 +17,7 @@ var (
 
 func initializer(kaiSDK sdk.KaiSDK) {
 	var err error
+
 	webhookEvents, err = kaiSDK.CentralizedConfig.GetConfig("webhook_events", messaging.ProcessScope)
 	if err != nil {
 		kaiSDK.Logger.Error(err, "Error getting webhook_events config")

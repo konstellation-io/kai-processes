@@ -40,30 +40,55 @@ func (s *GithubWebhookSuite) SetupSuite() {
 	}
 }
 
+type test struct {
+	name             string
+	payloadPath      string
+	expecetdEventURL string
+	expectedEvent    string
+	githubEvents     []github.Event
+}
+
 func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 	// Given
-	payload, err := os.Open("../../testdata/push_event.json")
-	s.Require().NoError(err)
-	defer func() {
-		_ = payload.Close()
-	}()
-	request := httptest.NewRequest(http.MethodPost, "/webhooks", payload)
-	request.Header.Set("X-GitHub-Event", "push")
-	responseWriter := httptest.NewRecorder()
+	allTests := []test{
+		{
+			name:             "push event",
+			payloadPath:      "../../testdata/push_event.json",
+			expecetdEventURL: "https://github.com/binkkatal/sample_app",
+			expectedEvent:    "push",
+			githubEvents:     []github.Event{github.PushEvent},
+		},
+	}
+
 	parser, err := github.New()
 	s.Require().NoError(err)
-	expectedResponse, err := structpb.NewValue(map[string]interface{}{
-		"eventUrl": "https://github.com/binkkatal/sample_app",
-		"event":    "push",
-	})
-	s.Require().NoError(err)
 
-	s.messaging.On("SendOutputWithRequestID",
-		expectedResponse,
-		mock.AnythingOfType("string")).
-		Return(nil)
+	for _, tc := range allTests {
+		s.T().Run(tc.name, func(t *testing.T) {
 
-	// WHEN
-	handlerFunction := s.githubWebhook.HandleEventRequest(parser, []github.Event{github.PushEvent}, s.kaiSdk)
-	handlerFunction(responseWriter, request)
+			payload, err := os.Open(tc.payloadPath)
+			s.Require().NoError(err)
+			defer func() {
+				_ = payload.Close()
+			}()
+			request := httptest.NewRequest(http.MethodPost, "/webhooks", payload)
+			request.Header.Set("X-GitHub-Event", "push")
+			responseWriter := httptest.NewRecorder()
+
+			expectedResponse, err := structpb.NewValue(map[string]interface{}{
+				"eventUrl": tc.expecetdEventURL,
+				"event":    tc.expectedEvent,
+			})
+			s.Require().NoError(err)
+
+			s.messaging.On("SendOutputWithRequestID",
+				expectedResponse,
+				mock.AnythingOfType("string")).
+				Return(nil)
+
+			// WHEN
+			handlerFunction := s.githubWebhook.HandleEventRequest(parser, tc.githubEvents, s.kaiSdk)
+			handlerFunction(responseWriter, request)
+		})
+	}
 }

@@ -12,9 +12,9 @@ type WebhookMock struct {
 	mock.Mock
 }
 
-// InitWebhook provides a mock function with given fields: events, githubSecret, kaiSDK
-func (_m *WebhookMock) InitWebhook(events []string, githubSecret string, kaiSDK sdk.KaiSDK) {
-	_m.Called(events, githubSecret, kaiSDK)
+// InitWebhook provides a mock function with given fields: eventConfig, githubSecret, kaiSDK
+func (_m *WebhookMock) InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) {
+	_m.Called(eventConfig, githubSecret, kaiSDK)
 }
 
 // NewWebhookMock creates a new instance of WebhookMock. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

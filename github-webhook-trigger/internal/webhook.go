@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-playground/webhooks/v6/github"
@@ -27,7 +28,7 @@ const (
 //go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
 
 type Webhook interface {
-	InitWebhook(events []string, githubSecret string, kaiSDK sdk.KaiSDK)
+	InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK)
 }
 
 type GithubWebhook struct {
@@ -37,8 +38,8 @@ func NewGithubWebhook() Webhook {
 	return &GithubWebhook{}
 }
 
-func (gw *GithubWebhook) InitWebhook(events []string, githubSecret string, kaiSDK sdk.KaiSDK) {
-	githubEvents := getEventsFromConfig(events)
+func (gw *GithubWebhook) InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) {
+	githubEvents := getEventsFromConfig(eventConfig)
 
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		hook, err := github.New(github.Options.Secret(githubSecret))
@@ -84,11 +85,12 @@ func (gw *GithubWebhook) InitWebhook(events []string, githubSecret string, kaiSD
 	}
 }
 
-func getEventsFromConfig(eventConfig []string) []github.Event {
+func getEventsFromConfig(eventConfig string) []github.Event {
+	events := strings.Split(eventConfig, ",")
 	totalEvents := map[string]github.Event{} // use map to avoid duplicates
 
-	for _, event := range eventConfig {
-		switch event {
+	for _, event := range events {
+		switch strings.TrimSpace(event) {
 		case pushEvent:
 			totalEvents[event] = github.PushEvent
 		case pullRequestEvent:

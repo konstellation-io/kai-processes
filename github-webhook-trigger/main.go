@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strings"
 
 	webhook "github.com/konstellation-io/kai-processes/github-webhook-trigger/internal"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
@@ -18,15 +17,13 @@ func initializer(webhook webhook.Webhook) func(sdk.KaiSDK) {
 			os.Exit(1)
 		}
 
-		events := strings.Split(webhookEvents, ",")
-
 		githubSecret, err := kaiSDK.CentralizedConfig.GetConfig("github_secret", messaging.ProcessScope)
 		if err != nil {
 			kaiSDK.Logger.Error(err, "Error getting github_secret config")
 			os.Exit(1)
 		}
 
-		webhook.InitWebhook(events, githubSecret, kaiSDK)
+		webhook.InitWebhook(webhookEvents, githubSecret, kaiSDK)
 	}
 }
 

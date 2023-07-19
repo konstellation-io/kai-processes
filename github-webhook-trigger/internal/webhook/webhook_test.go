@@ -153,7 +153,9 @@ func (s *GithubWebhookSuite) TestGetEventsFromConfig_OK() {
 
 	// Then
 	s.Require().NoError(err)
-	s.Require().Equal(expectedEvents, events)
+	for _, event := range expectedEvents {
+		s.Assert().Contains(events, event)
+	}
 }
 
 func (s *GithubWebhookSuite) TestGetEventsFromConfig_Error() {

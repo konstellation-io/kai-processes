@@ -105,7 +105,9 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 		},
 	}
 
-	allTests := append(okTests, IgnoredTests...)
+	allTests := make([]test, 0)
+	allTests = append(allTests, okTests...)
+	allTests = append(allTests, IgnoredTests...)
 
 	parser, err := github.New()
 	s.Require().NoError(err)
@@ -146,13 +148,13 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 func (s *GithubWebhookSuite) TestGetEventsFromConfig_OK() {
 	// Given
 	expectedEvents := []github.Event{github.PushEvent, github.PullRequestEvent, github.ReleaseEvent}
-	eventConfig := "push,pull_request,release"
+	eventConfig := "push, pull_request, release"
 
 	// When
 	events, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
+	s.Require().NoError(err)
 
 	// Then
-	s.Require().NoError(err)
 	for _, event := range expectedEvents {
 		s.Assert().Contains(events, event)
 	}

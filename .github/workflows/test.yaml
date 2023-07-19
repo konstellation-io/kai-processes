@@ -8,8 +8,7 @@ on:
       - 'hotfix/**'
   pull_request:
     paths:
-      - 'engine/**/*'
-      - 'helm/**/*'
+      - 'github-webhook-trigger/**/*'
       - '.github/workflows/test.yaml'
     branches:
       # Destination branches
@@ -21,7 +20,6 @@ jobs:
     name: Check folder changes
     outputs:
       gh-webhook-trigger: ${{ steps.filter.outputs.gh-webhook-trigger }}
-      main: ${{ steps.filter.outputs.main }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -31,10 +29,7 @@ jobs:
       with:
         filters: |
           gh-webhook-trigger:
-            - 'internal/webhook/*'
-            - '.github/workflows/test.yaml'
-          main:
-            - 'main.go','main_test.go'
+            - 'github-webhook-trigger/**/*'
             - '.github/workflows/test.yaml'
 
   unit-tests:
@@ -46,9 +41,7 @@ jobs:
       matrix:
         include:
           - component: gh-webhook-trigger
-          changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
-          - component: main
-          changes: ${{ needs.check-folder-changes.outputs.main }}
+            changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
     steps:
       - name: Checkout code
         if: matrix.changes == 'true'
@@ -63,7 +56,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          working-directory: ./engine/${{ matrix.component }}
+          working-directory: ./${{ matrix.component }}
           args: --timeout=5m
       - name: Run unit tests
         if: matrix.changes == 'true'
@@ -94,9 +87,6 @@ jobs:
         include:
           - component: gh-webhook-trigger
             changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
-            sonar_token_secret: SONAR_TOKEN
-          - component: main
-            changes: ${{ needs.check-folder-changes.outputs.main }}
             sonar_token_secret: SONAR_TOKEN
     steps:
       - uses: actions/checkout@v3

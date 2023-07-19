@@ -53,6 +53,8 @@ type test struct {
 
 func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 	// Given
+	const baxterPublicRepoExample = "https://api.github.com/repos/baxterthehacker/public-repo"
+
 	okTests := []test{
 		{
 			name:             "push event",
@@ -73,7 +75,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 		{
 			name:             "release event",
 			payloadPath:      "../../testdata/release.json",
-			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEventURL: baxterPublicRepoExample,
 			expectedEvent:    "release",
 			githubEvents:     []github.Event{github.ReleaseEvent},
 			isIgnored:        false,
@@ -81,7 +83,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 		{
 			name:             "workflow dispatch event",
 			payloadPath:      "../../testdata/workflow_dispatch.json",
-			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEventURL: baxterPublicRepoExample,
 			expectedEvent:    "workflow_dispatch",
 			githubEvents:     []github.Event{github.WorkflowDispatchEvent},
 			isIgnored:        false,
@@ -89,7 +91,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 		{
 			name:             "workflow run event",
 			payloadPath:      "../../testdata/workflow_run.json",
-			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEventURL: baxterPublicRepoExample,
 			expectedEvent:    "workflow_run",
 			githubEvents:     []github.Event{github.WorkflowRunEvent},
 			isIgnored:        false,
@@ -100,7 +102,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 		{
 			name:             "unsupported event",
 			payloadPath:      "../../testdata/delete.json",
-			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEventURL: baxterPublicRepoExample,
 			expectedEvent:    "delete",
 			githubEvents:     []github.Event{github.DeleteEvent},
 			isIgnored:        true,
@@ -147,7 +149,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 	}
 }
 
-func (s *GithubWebhookSuite) TestGetEventsFromConfig_OK() {
+func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
 	// Given
 	expectedEvents := []github.Event{github.PushEvent, github.PullRequestEvent, github.ReleaseEvent}
 	eventConfig := "push, pull_request, release"
@@ -162,7 +164,7 @@ func (s *GithubWebhookSuite) TestGetEventsFromConfig_OK() {
 	}
 }
 
-func (s *GithubWebhookSuite) TestGetEventsFromConfig_Error() {
+func (s *GithubWebhookSuite) TestGetEventsFromConfigError() {
 	// Given
 	eventConfig := "push,pull_request, delete"
 

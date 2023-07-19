@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var formatTwoErrors = "%w: %w"
+
 var ErrEventNotSupported = errors.New("event not supported")
 var ErrNotAValidEvent = errors.New("not a valid event")
 var ErrGettingEventsFromConfig = errors.New("error getting events from config")
@@ -16,13 +18,13 @@ func NotValidEventError(event string) error {
 }
 
 func GettingEventsFromConfigError(err error) error {
-	return fmt.Errorf("%w: %w", ErrGettingEventsFromConfig, err)
+	return fmt.Errorf(formatTwoErrors, ErrGettingEventsFromConfig, err)
 }
 
 func CreatingWebhookError(err error) error {
-	return fmt.Errorf("%w: %w", ErrCreatingWebhook, err)
+	return fmt.Errorf(formatTwoErrors, ErrCreatingWebhook, err)
 }
 
 func ServerError(err error) error {
-	return fmt.Errorf("%w: %w", ErrServer, err)
+	return fmt.Errorf(formatTwoErrors, ErrServer, err)
 }

@@ -17,11 +17,11 @@ const (
 )
 
 const (
-	PushEvent             = "push"
 	PullRequestEvent      = "pull_request"
+	PushEvent             = "push"
 	ReleaseEvent          = "release"
-	WorkflowRunEvent      = "workflow_run"
 	WorkflowDispatchEvent = "workflow_dispatch"
+	WorkflowRunEvent      = "workflow_run"
 )
 
 //go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
@@ -72,16 +72,16 @@ func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents
 		}
 
 		switch payload := payload.(type) {
-		case github.PushPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, PushEvent)
 		case github.PullRequestPayload:
 			err = triggerPipeline(kaiSDK, payload.PullRequest.URL, PullRequestEvent)
+		case github.PushPayload:
+			err = triggerPipeline(kaiSDK, payload.Repository.URL, PushEvent)
 		case github.ReleasePayload:
 			err = triggerPipeline(kaiSDK, payload.Repository.URL, ReleaseEvent)
-		case github.WorkflowRunPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowRunEvent)
 		case github.WorkflowDispatchPayload:
 			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowDispatchEvent)
+		case github.WorkflowRunPayload:
+			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowRunEvent)
 		default:
 			err = ErrEventNotSupported
 		}
@@ -99,16 +99,16 @@ func getEventsFromConfig(eventConfig string) ([]github.Event, error) {
 
 	for _, event := range events {
 		switch event {
-		case PushEvent:
-			totalEvents[event] = github.PushEvent
 		case PullRequestEvent:
 			totalEvents[event] = github.PullRequestEvent
+		case PushEvent:
+			totalEvents[event] = github.PushEvent
 		case ReleaseEvent:
 			totalEvents[event] = github.ReleaseEvent
-		case WorkflowRunEvent:
-			totalEvents[event] = github.WorkflowRunEvent
 		case WorkflowDispatchEvent:
 			totalEvents[event] = github.WorkflowDispatchEvent
+		case WorkflowRunEvent:
+			totalEvents[event] = github.WorkflowRunEvent
 		default:
 			return nil, NotValidEventError(event)
 		}

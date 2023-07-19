@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -40,12 +39,12 @@ func NewGithubWebhook() Webhook {
 func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sdk.KaiSDK) error {
 	githubEvents, err := getEventsFromConfig(eventConfig)
 	if err != nil {
-		return fmt.Errorf("error getting events from config: %w", err)
+		return GettingEventsFromConfigError(err)
 	}
 
 	parser, err := github.New(github.Options.Secret(githubSecret))
 	if err != nil {
-		return fmt.Errorf("error creating webhook: %w", err)
+		return CreatingWebhookError(err)
 	}
 
 	http.HandleFunc(path, gw.handleEventRequest(parser, githubEvents, kaiSDK))
@@ -57,7 +56,7 @@ func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sd
 
 	err = server.ListenAndServe()
 	if err != nil {
-		return fmt.Errorf("error listening and serving: %w", err)
+		return ServerError(err)
 	}
 
 	return nil
@@ -83,6 +82,8 @@ func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents
 			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowRunEvent)
 		case github.WorkflowDispatchPayload:
 			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowDispatchEvent)
+		default:
+			err = ErrEventNotSupported
 		}
 
 		if err != nil {
@@ -109,7 +110,7 @@ func getEventsFromConfig(eventConfig string) ([]github.Event, error) {
 		case WorkflowDispatchEvent:
 			totalEvents[event] = github.WorkflowDispatchEvent
 		default:
-			return nil, fmt.Errorf("%q is not a valid event", event)
+			return nil, NotValidEventError(event)
 		}
 	}
 

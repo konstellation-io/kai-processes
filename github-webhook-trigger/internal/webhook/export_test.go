@@ -15,3 +15,7 @@ func (gw *GithubWebhook) HandleEventRequest(hook *github.Webhook, githubEvents [
 	kaiSDK sdk.KaiSDK) func(w http.ResponseWriter, r *http.Request) {
 	return gw.handleEventRequest(hook, githubEvents, kaiSDK)
 }
+
+func (gw *GithubWebhook) GetEventsFromConfig(eventConfig string) ([]github.Event, error) {
+	return getEventsFromConfig(eventConfig)
+}

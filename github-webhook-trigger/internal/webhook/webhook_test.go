@@ -46,17 +46,19 @@ type test struct {
 	expectedEventURL string
 	expectedEvent    string
 	githubEvents     []github.Event
+	isIgnored        bool
 }
 
-func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
+func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 	// Given
-	allTests := []test{
+	okTests := []test{
 		{
 			name:             "push event",
 			payloadPath:      "../../testdata/push_event.json",
 			expectedEventURL: "https://github.com/binkkatal/sample_app",
 			expectedEvent:    "push",
 			githubEvents:     []github.Event{github.PushEvent},
+			isIgnored:        false,
 		},
 		{
 			name:             "pull request event",
@@ -64,6 +66,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo/pulls/1",
 			expectedEvent:    "pull_request",
 			githubEvents:     []github.Event{github.PullRequestEvent},
+			isIgnored:        false,
 		},
 		{
 			name:             "release event",
@@ -71,6 +74,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
 			expectedEvent:    "release",
 			githubEvents:     []github.Event{github.ReleaseEvent},
+			isIgnored:        false,
 		},
 		{
 			name:             "workflow dispatch event",
@@ -78,6 +82,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
 			expectedEvent:    "workflow_dispatch",
 			githubEvents:     []github.Event{github.WorkflowDispatchEvent},
+			isIgnored:        false,
 		},
 		{
 			name:             "workflow run event",
@@ -85,8 +90,22 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
 			expectedEvent:    "workflow_run",
 			githubEvents:     []github.Event{github.WorkflowRunEvent},
+			isIgnored:        false,
 		},
 	}
+
+	IgnoredTests := []test{
+		{
+			name:             "unsupported event",
+			payloadPath:      "../../testdata/delete.json",
+			expectedEventURL: "https://api.github.com/repos/baxterthehacker/public-repo",
+			expectedEvent:    "delete",
+			githubEvents:     []github.Event{github.DeleteEvent},
+			isIgnored:        true,
+		},
+	}
+
+	allTests := append(okTests, IgnoredTests...)
 
 	parser, err := github.New()
 	s.Require().NoError(err)
@@ -108,14 +127,42 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest_ExpectOk() {
 			})
 			s.Require().NoError(err)
 
-			s.messaging.On("SendOutputWithRequestID",
-				expectedResponse,
-				mock.AnythingOfType("string")).
-				Return(nil)
+			if tc.isIgnored {
+				s.messaging.ExpectedCalls = nil
+			} else {
+				s.messaging.On("SendOutputWithRequestID",
+					expectedResponse,
+					mock.AnythingOfType("string")).
+					Return(nil)
+			}
 
-			// WHEN
+			// When
 			handlerFunction := s.githubWebhook.HandleEventRequest(parser, tc.githubEvents, s.kaiSdk)
 			handlerFunction(responseWriter, request)
 		})
 	}
+}
+
+func (s *GithubWebhookSuite) TestGetEventsFromConfig_OK() {
+	// Given
+	expectedEvents := []github.Event{github.PushEvent, github.PullRequestEvent, github.ReleaseEvent}
+	eventConfig := "push,pull_request,release"
+
+	// When
+	events, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
+
+	// Then
+	s.Require().NoError(err)
+	s.Require().Equal(expectedEvents, events)
+}
+
+func (s *GithubWebhookSuite) TestGetEventsFromConfig_Error() {
+	// Given
+	eventConfig := "push,pull_request, delete"
+
+	// When
+	_, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
+
+	// Then
+	s.Require().Error(err)
 }

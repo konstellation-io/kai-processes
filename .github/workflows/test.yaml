@@ -42,7 +42,7 @@ jobs:
       matrix:
         include:
           - component: gh-webhook-trigger
-          changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
+           changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
     steps:
       - name: Checkout code
         if: matrix.changes == 'true'

@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "konstellation-io",
+        "projectKey": "konstellation-io_kai-processes_github_webhook_trigger"
+    }
+}

@@ -1,0 +1,110 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'hotfix/**'
+  pull_request:
+    paths:
+      - 'github-webhook-trigger/**/*'
+      - '.github/workflows/test.yaml'
+    branches:
+      # Destination branches
+      - 'develop'
+
+jobs:
+  check-folder-changes:
+    runs-on: ubuntu-latest
+    name: Check folder changes
+    outputs:
+      gh-webhook-trigger: ${{ steps.filter.outputs.gh-webhook-trigger }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          gh-webhook-trigger:
+            - 'github-webhook-trigger/**/*'
+            - '.github/workflows/test.yaml'
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Linting and Unit tests
+    needs: check-folder-changes
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - component: gh-webhook-trigger
+            changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
+    steps:
+      - name: Checkout code
+        if: matrix.changes == 'true'
+        uses: actions/checkout@v3
+      - name: Install Go
+        if: matrix.changes == 'true'
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.x
+      - name: Run golangci-lint
+        if: matrix.changes == 'true'
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: ./${{ matrix.component }}
+          args: --timeout=5m
+      - name: Run unit tests
+        if: matrix.changes == 'true'
+        run: go test ./... -cover -v -coverpkg=./... -coverprofile=coverage-unit.out --tags=unit
+        working-directory: ./${{ matrix.component }}
+      - name: Run integration tests
+        if: matrix.changes == 'true'
+        run: go test ./... -cover -v -coverpkg=./... -coverprofile=coverage-integration.out --tags=integration
+        working-directory: ./${{ matrix.component }}
+      - name: Archive code coverage results
+        if: matrix.changes == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report-${{ matrix.component }}
+          path: |
+            ${{ matrix.component }}/coverage-unit.out
+            ${{ matrix.component }}/coverage-integration.out
+
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    needs:
+      - check-folder-changes
+      - unit-tests
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - component: gh-webhook-trigger
+            changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
+            sonar_token_secret: SONAR_TOKEN
+    steps:
+      - uses: actions/checkout@v3
+        if: matrix.changes == 'true'
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Download code coverage results
+        if: matrix.changes == 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report-${{ matrix.component }}
+          path: |
+            ${{ matrix.component }}
+      - name: SonarCloud Scan
+        if: matrix.changes == 'true'
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: ${{ matrix.component }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets[matrix.sonar_token_secret] }}

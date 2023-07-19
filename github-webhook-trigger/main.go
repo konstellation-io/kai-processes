@@ -33,7 +33,11 @@ func initializer(kaiSDK sdk.KaiSDK) {
 
 func runnerFunc(wh webhook.Webhook) trigger.RunnerFunc {
 	return func(tr *trigger.Runner, sdk sdk.KaiSDK) {
-		wh.InitWebhook(webhookEvents, githubSecret, sdk)
+		err := wh.InitWebhook(webhookEvents, githubSecret, sdk)
+		if err != nil {
+			sdk.Logger.Error(err, "error creating webhook")
+			os.Exit(1)
+		}
 	}
 }
 

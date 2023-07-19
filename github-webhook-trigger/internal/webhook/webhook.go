@@ -2,8 +2,8 @@ package webhook
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -27,7 +27,7 @@ const (
 
 //go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
 type Webhook interface {
-	InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK)
+	InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) error
 }
 
 type GithubWebhook struct {
@@ -37,13 +37,15 @@ func NewGithubWebhook() Webhook {
 	return &GithubWebhook{}
 }
 
-func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sdk.KaiSDK) {
-	githubEvents := getEventsFromConfig(eventConfig)
+func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sdk.KaiSDK) error {
+	githubEvents, err := getEventsFromConfig(eventConfig)
+	if err != nil {
+		return fmt.Errorf("error getting events from config: %w", err)
+	}
 
 	parser, err := github.New(github.Options.Secret(githubSecret))
 	if err != nil {
-		kaiSDK.Logger.Error(err, "Error creating webhook")
-		os.Exit(1)
+		return fmt.Errorf("error creating webhook: %w", err)
 	}
 
 	http.HandleFunc(path, gw.handleEventRequest(parser, githubEvents, kaiSDK))
@@ -55,9 +57,10 @@ func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sd
 
 	err = server.ListenAndServe()
 	if err != nil {
-		kaiSDK.Logger.Error(err, "Error listening and serving")
-		os.Exit(1)
+		return fmt.Errorf("error listening and serving: %w", err)
 	}
+
+	return nil
 }
 
 func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents []github.Event,
@@ -89,7 +92,7 @@ func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents
 	}
 }
 
-func getEventsFromConfig(eventConfig string) []github.Event {
+func getEventsFromConfig(eventConfig string) ([]github.Event, error) {
 	events := strings.Split(strings.ReplaceAll(eventConfig, " ", ""), ",")
 	totalEvents := map[string]github.Event{} // use map to avoid duplicates
 
@@ -105,6 +108,8 @@ func getEventsFromConfig(eventConfig string) []github.Event {
 			totalEvents[event] = github.WorkflowRunEvent
 		case WorkflowDispatchEvent:
 			totalEvents[event] = github.WorkflowDispatchEvent
+		default:
+			return nil, fmt.Errorf("%q is not a valid event", event)
 		}
 	}
 
@@ -113,7 +118,7 @@ func getEventsFromConfig(eventConfig string) []github.Event {
 		totalEventsSlice = append(totalEventsSlice, event)
 	}
 
-	return totalEventsSlice
+	return totalEventsSlice, nil
 }
 
 func triggerPipeline(kaiSDK sdk.KaiSDK, eventURL, event string) error {

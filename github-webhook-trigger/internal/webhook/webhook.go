@@ -1,9 +1,13 @@
 package webhook
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-playground/webhooks/v6/github"
@@ -55,18 +59,35 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 
 	http.HandleFunc(path, handleEventRequest(parser, githubEvents, kaiSDK))
 
-	server := &http.Server{
+	srv := &http.Server{
 		Addr:              ":3000",
 		ReadHeaderTimeout: 5 * time.Second,
 	}
-	defer server.Close()
 
-	err = server.ListenAndServe()
-	if errors.Is(err, http.ErrServerClosed) {
-		return nil
-	} else if err != nil {
-		return ServerError(err)
+	// Create a channel to receive signals
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		kaiSDK.Logger.Info("Server listening on %s\n", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			signalCh <- syscall.SIGTERM
+		}
+	}()
+
+	sig := <-signalCh
+	kaiSDK.Logger.Info("Received signal: %v", sig)
+
+	// Create a context with a timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Shutdown the server gracefully
+	if err := srv.Shutdown(ctx); err != nil {
+		kaiSDK.Logger.Error(err, "Server shutdown failed")
 	}
+
+	kaiSDK.Logger.Info("Server shutdown gracefully")
 
 	return nil
 }

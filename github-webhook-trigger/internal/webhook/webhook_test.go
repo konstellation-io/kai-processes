@@ -3,6 +3,7 @@
 package webhook_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"bou.ke/monkey"
 	"github.com/go-logr/logr/testr"
 	"github.com/go-playground/webhooks/v6/github"
 	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
@@ -56,10 +58,11 @@ func (s *GithubWebhookSuite) TearDownTest() {
 	s.centralizedConfigMock.AssertExpectations(s.T())
 	s.messagingMock.ExpectedCalls = nil
 	s.centralizedConfigMock.ExpectedCalls = nil
+	s.messagingMock.Calls = nil
 }
 
 func (s *GithubWebhookSuite) TestInitializer() {
-	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
+	rawEvents := "push,pull_request ,release,workflow_run,workflow_dispatch"
 	githubSecret := "mockedSecret"
 
 	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
@@ -114,7 +117,6 @@ type test struct {
 }
 
 func (s *GithubWebhookSuite) TestHandlerEventRequest() {
-	// Given
 	const baxterPublicRepoExample = "https://api.github.com/repos/baxterthehacker/public-repo"
 
 	okTests := []test{
@@ -204,7 +206,6 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 					Return(nil)
 			}
 
-			// When
 			handlerFunction := s.githubWebhookTest.HandleEventRequest(parser, tc.githubEvents, s.kaiSdk)
 			handlerFunction(responseWriter, request)
 		})
@@ -212,18 +213,50 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 }
 
 func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
-	// Given
 	expectedEvents := []github.Event{
 		github.PushEvent, github.PullRequestEvent, github.ReleaseEvent, github.WorkflowDispatchEvent, github.WorkflowRunEvent,
 	}
 	eventConfig := "push, pull_request, release, workflow_dispatch, workflow_run"
 
-	// When
 	events, err := s.githubWebhookTest.GetEventsFromConfig(eventConfig)
 	s.Require().NoError(err)
 
-	// Then
 	for _, event := range expectedEvents {
 		s.Assert().Contains(events, event)
 	}
+}
+
+func (s *GithubWebhookSuite) TestHandlerEventRequestParseError() {
+	fakeParse := func(*http.Request, ...github.Event) (interface{}, error) {
+		return nil, fmt.Errorf("fake error")
+	}
+
+	parser, err := github.New()
+	s.Require().NoError(err)
+
+	patch := monkey.Patch(parser.Parse, fakeParse)
+	defer patch.Unpatch()
+
+	handlerFunction := s.githubWebhookTest.HandleEventRequest(parser, nil, s.kaiSdk)
+	handlerFunction(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/webhooks", nil))
+
+	s.messagingMock.AssertNotCalled(s.T(), "SendOutputWithRequestID", mock.Anything, mock.Anything)
+}
+
+func (s *GithubWebhookSuite) TestInitWebhookCreatingWebhookError() {
+	fakeNew := func(...github.Option) (*github.Webhook, error) {
+		return nil, fmt.Errorf("fake error")
+	}
+
+	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
+	githubSecret := "mockedSecret"
+
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+
+	patch := monkey.Patch(github.New, fakeNew)
+	defer patch.Unpatch()
+
+	err := s.githubWebhook.InitWebhook(s.kaiSdk)
+	s.Assert().Error(err)
 }

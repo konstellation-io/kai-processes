@@ -64,7 +64,6 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	// Create a channel to receive signals
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 
@@ -78,11 +77,9 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 	sig := <-signalCh
 	kaiSDK.Logger.Info("Received signal: %v", sig)
 
-	// Create a context with a timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Shutdown the server gracefully
 	if err := srv.Shutdown(ctx); err != nil {
 		kaiSDK.Logger.Error(err, "Server shutdown failed")
 	}

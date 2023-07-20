@@ -19,10 +19,16 @@
 # vendor/
 
 # Go workspace file
+.idea
 go.work
 go.work.sum
 
 # VS Code
-.vscode/*
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
 **/build/**

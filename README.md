@@ -13,7 +13,7 @@ The trigger supports the following event types:
 - workflow_dispatch
 - workflow_run
 
-## How to setup
+### How to setup
 
 The trigger requires two key-values defined in the process' configuration section, inside the krt.yml of the KAI product.  
 One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).

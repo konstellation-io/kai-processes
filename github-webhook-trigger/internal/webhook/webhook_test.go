@@ -204,19 +204,19 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 	}
 }
 
-// func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
-// 	// Given
-// 	expectedEvents := []github.Event{
-// 		github.PushEvent, github.PullRequestEvent, github.ReleaseEvent, github.WorkflowDispatchEvent, github.WorkflowRunEvent,
-// 	}
-// 	eventConfig := "push, pull_request, release, workflow_dispatch, workflow_run"
+func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
+	// Given
+	expectedEvents := []github.Event{
+		github.PushEvent, github.PullRequestEvent, github.ReleaseEvent, github.WorkflowDispatchEvent, github.WorkflowRunEvent,
+	}
+	eventConfig := "push, pull_request, release, workflow_dispatch, workflow_run"
 
-// 	// When
-// 	events, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
-// 	s.Require().NoError(err)
+	// When
+	events, err := s.githubWebhookTest.GetEventsFromConfig(eventConfig)
+	s.Require().NoError(err)
 
-// 	// Then
-// 	for _, event := range expectedEvents {
-// 		s.Assert().Contains(events, event)
-// 	}
-// }
+	// Then
+	for _, event := range expectedEvents {
+		s.Assert().Contains(events, event)
+	}
+}

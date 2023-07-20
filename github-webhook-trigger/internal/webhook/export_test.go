@@ -21,6 +21,6 @@ func (gw *GithubWebhookTestExporter) HandleEventRequest(hook *github.Webhook, gi
 	return handleEventRequest(hook, githubEvents, kaiSDK)
 }
 
-// func (gw *GithubWebhookTestExporter) GetEventsFromConfig(eventConfig string) ([]github.Event, error) {
-// 	return getEventsFromConfig(eventConfig)
-// }
+func (gw *GithubWebhookTestExporter) GetEventsFromConfig(eventConfig string) ([]github.Event, error) {
+	return getEventsFromConfig(eventConfig)
+}

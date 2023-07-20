@@ -69,7 +69,8 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 
 	go func() {
 		kaiSDK.Logger.Info("Server listening on %s\n", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			signalCh <- syscall.SIGTERM
 		}
 	}()
@@ -89,13 +90,13 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 	return nil
 }
 
-func getConfig(kaiSDK sdk.KaiSDK) (string, string, error) {
-	webhookEvents, err := kaiSDK.CentralizedConfig.GetConfig("webhook_events", messaging.ProcessScope)
+func getConfig(kaiSDK sdk.KaiSDK) (webhookEvents, githubSecret string, err error) {
+	webhookEvents, err = kaiSDK.CentralizedConfig.GetConfig("webhook_events", messaging.ProcessScope)
 	if err != nil {
 		return "", "", err
 	}
 
-	githubSecret, err := kaiSDK.CentralizedConfig.GetConfig("github_secret", messaging.ProcessScope)
+	githubSecret, err = kaiSDK.CentralizedConfig.GetConfig("github_secret", messaging.ProcessScope)
 	if err != nil {
 		return "", "", err
 	}

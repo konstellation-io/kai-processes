@@ -12,13 +12,13 @@ type WebhookMock struct {
 	mock.Mock
 }
 
-// InitWebhook provides a mock function with given fields: eventConfig, githubSecret, kaiSDK
-func (_m *WebhookMock) InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) error {
-	ret := _m.Called(eventConfig, githubSecret, kaiSDK)
+// InitWebhook provides a mock function with given fields: kaiSDK
+func (_m *WebhookMock) InitWebhook(kaiSDK sdk.KaiSDK) error {
+	ret := _m.Called(kaiSDK)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, sdk.KaiSDK) error); ok {
-		r0 = rf(eventConfig, githubSecret, kaiSDK)
+	if rf, ok := ret.Get(0).(func(sdk.KaiSDK) error); ok {
+		r0 = rf(kaiSDK)
 	} else {
 		r0 = ret.Error(0)
 	}

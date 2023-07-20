@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/webhooks/v6/github"
 	"github.com/google/uuid"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -26,7 +27,7 @@ const (
 
 //go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
 type Webhook interface {
-	InitWebhook(eventConfig string, githubSecret string, kaiSDK sdk.KaiSDK) error
+	InitWebhook(kaiSDK sdk.KaiSDK) error
 }
 
 type GithubWebhook struct {
@@ -36,7 +37,12 @@ func NewGithubWebhook() Webhook {
 	return &GithubWebhook{}
 }
 
-func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sdk.KaiSDK) error {
+func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
+	eventConfig, githubSecret, err := getConfig(kaiSDK)
+	if err != nil {
+		return err
+	}
+
 	githubEvents, err := getEventsFromConfig(eventConfig)
 	if err != nil {
 		return GettingEventsFromConfigError(err)
@@ -47,23 +53,43 @@ func (gw *GithubWebhook) InitWebhook(eventConfig, githubSecret string, kaiSDK sd
 		return CreatingWebhookError(err)
 	}
 
-	http.HandleFunc(path, gw.handleEventRequest(parser, githubEvents, kaiSDK))
+	http.HandleFunc(path, handleEventRequest(parser, githubEvents, kaiSDK))
 
 	server := &http.Server{
 		Addr:              ":3000",
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+	defer server.Close()
 
 	err = server.ListenAndServe()
-	if err != nil {
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	} else if err != nil {
 		return ServerError(err)
 	}
 
 	return nil
 }
 
-func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents []github.Event,
-	kaiSDK sdk.KaiSDK) func(w http.ResponseWriter, r *http.Request) {
+func getConfig(kaiSDK sdk.KaiSDK) (string, string, error) {
+	webhookEvents, err := kaiSDK.CentralizedConfig.GetConfig("webhook_events", messaging.ProcessScope)
+	if err != nil {
+		return "", "", err
+	}
+
+	githubSecret, err := kaiSDK.CentralizedConfig.GetConfig("github_secret", messaging.ProcessScope)
+	if err != nil {
+		return "", "", err
+	}
+
+	return webhookEvents, githubSecret, nil
+}
+
+func handleEventRequest(
+	parser *github.Webhook,
+	githubEvents []github.Event,
+	kaiSDK sdk.KaiSDK,
+) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload, err := parser.Parse(r, githubEvents...)
 		if err != nil && !errors.Is(err, github.ErrEventNotFound) {
@@ -73,15 +99,15 @@ func (gw *GithubWebhook) handleEventRequest(parser *github.Webhook, githubEvents
 
 		switch payload := payload.(type) {
 		case github.PullRequestPayload:
-			err = triggerPipeline(kaiSDK, payload.PullRequest.URL, PullRequestEvent)
+			err = triggerPipeline(payload.PullRequest.URL, PullRequestEvent, kaiSDK)
 		case github.PushPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, PushEvent)
+			err = triggerPipeline(payload.Repository.URL, PushEvent, kaiSDK)
 		case github.ReleasePayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, ReleaseEvent)
+			err = triggerPipeline(payload.Repository.URL, ReleaseEvent, kaiSDK)
 		case github.WorkflowDispatchPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowDispatchEvent)
+			err = triggerPipeline(payload.Repository.URL, WorkflowDispatchEvent, kaiSDK)
 		case github.WorkflowRunPayload:
-			err = triggerPipeline(kaiSDK, payload.Repository.URL, WorkflowRunEvent)
+			err = triggerPipeline(payload.Repository.URL, WorkflowRunEvent, kaiSDK)
 		default:
 			err = ErrEventNotSupported
 		}
@@ -122,7 +148,7 @@ func getEventsFromConfig(eventConfig string) ([]github.Event, error) {
 	return totalEventsSlice, nil
 }
 
-func triggerPipeline(kaiSDK sdk.KaiSDK, eventURL, event string) error {
+func triggerPipeline(eventURL, event string, kaiSDK sdk.KaiSDK) error {
 	requestID := uuid.New().String()
 	kaiSDK.Logger.Info("Github webhook triggered, new message sent", "requestID", requestID)
 

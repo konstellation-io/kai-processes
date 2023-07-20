@@ -12,6 +12,8 @@ import (
 	"github.com/go-playground/webhooks/v6/github"
 	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -22,9 +24,11 @@ import (
 type GithubWebhookSuite struct {
 	suite.Suite
 
-	githubWebhook *webhook.GithubWebhook
-	kaiSdk        sdk.KaiSDK
-	messaging     *sdkMocks.MessagingMock
+	githubWebhook         webhook.Webhook
+	githubWebhookTest     *webhook.GithubWebhookTestExporter
+	centralizedConfigMock *sdkMocks.CentralizedConfigMock
+	messagingMock         *sdkMocks.MessagingMock
+	kaiSdk                sdk.KaiSDK
 }
 
 func TestGithubWebhookSuite(t *testing.T) {
@@ -32,14 +36,65 @@ func TestGithubWebhookSuite(t *testing.T) {
 }
 
 func (s *GithubWebhookSuite) SetupSuite() {
-	s.githubWebhook = webhook.NewTestGithubWebhook()
+	s.githubWebhook = webhook.NewGithubWebhook()
+	s.githubWebhookTest = webhook.NewGithubWebhookTestExporter()
 
-	s.messaging = sdkMocks.NewMessagingMock(s.T())
+	s.messagingMock = sdkMocks.NewMessagingMock(s.T())
+	s.centralizedConfigMock = sdkMocks.NewCentralizedConfigMock(s.T())
 
 	s.kaiSdk = sdk.KaiSDK{
-		Logger:    testr.New(s.T()),
-		Messaging: s.messaging,
+		Logger:            testr.New(s.T()),
+		Messaging:         s.messagingMock,
+		CentralizedConfig: s.centralizedConfigMock,
 	}
+}
+
+func (s *GithubWebhookSuite) TearDownTest() {
+	s.messagingMock.AssertExpectations(s.T())
+	s.centralizedConfigMock.AssertExpectations(s.T())
+	s.messagingMock.ExpectedCalls = nil
+	s.centralizedConfigMock.ExpectedCalls = nil
+}
+
+func (s *GithubWebhookSuite) TestInitializer() {
+	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
+	githubSecret := "mockedSecret"
+
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+
+	err := s.githubWebhook.InitWebhook(s.kaiSdk)
+	s.Assert().NoError(err)
+	// pendiente hacer el monkey patch
+}
+
+func (s *GithubWebhookSuite) TestInitializerNoEventConfigError() {
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+
+	err := s.githubWebhook.InitWebhook(s.kaiSdk)
+	s.Assert().Error(err)
+}
+
+func (s *GithubWebhookSuite) TestInitializerNoGithubSecretError() {
+	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
+
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+
+	err := s.githubWebhook.InitWebhook(s.kaiSdk)
+	s.Assert().Error(err)
+}
+
+func (s *GithubWebhookSuite) TestInitializerEventNotSupportedError() {
+	rawEvents := "push, pull_request, release, workflow_run, workflow_dispatch, unsupported"
+	githubSecret := "mockedSecret"
+
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+
+	err := s.githubWebhook.InitWebhook(s.kaiSdk)
+	s.Require().Error(err)
+	s.Assert().ErrorIs(err, webhook.ErrNotAValidEvent)
 }
 
 type test struct {
@@ -134,45 +189,34 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 			s.Require().NoError(err)
 
 			if tc.isIgnored {
-				s.messaging.ExpectedCalls = nil
+				s.messagingMock.ExpectedCalls = nil
 			} else {
-				s.messaging.On("SendOutputWithRequestID",
+				s.messagingMock.On("SendOutputWithRequestID",
 					expectedResponse,
 					mock.AnythingOfType("string")).
 					Return(nil)
 			}
 
 			// When
-			handlerFunction := s.githubWebhook.HandleEventRequest(parser, tc.githubEvents, s.kaiSdk)
+			handlerFunction := s.githubWebhookTest.HandleEventRequest(parser, tc.githubEvents, s.kaiSdk)
 			handlerFunction(responseWriter, request)
 		})
 	}
 }
 
-func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
-	// Given
-	expectedEvents := []github.Event{
-		github.PushEvent, github.PullRequestEvent, github.ReleaseEvent, github.WorkflowDispatchEvent, github.WorkflowRunEvent,
-	}
-	eventConfig := "push, pull_request, release, workflow_dispatch, workflow_run"
+// func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
+// 	// Given
+// 	expectedEvents := []github.Event{
+// 		github.PushEvent, github.PullRequestEvent, github.ReleaseEvent, github.WorkflowDispatchEvent, github.WorkflowRunEvent,
+// 	}
+// 	eventConfig := "push, pull_request, release, workflow_dispatch, workflow_run"
 
-	// When
-	events, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
-	s.Require().NoError(err)
+// 	// When
+// 	events, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
+// 	s.Require().NoError(err)
 
-	// Then
-	for _, event := range expectedEvents {
-		s.Assert().Contains(events, event)
-	}
-}
-
-func (s *GithubWebhookSuite) TestGetEventsFromConfigError() {
-	// Given
-	eventConfig := "push,pull_request, delete"
-
-	// When
-	_, err := s.githubWebhook.GetEventsFromConfig(eventConfig)
-
-	// Then
-	s.Require().Error(err)
-}
+// 	// Then
+// 	for _, event := range expectedEvents {
+// 		s.Assert().Contains(events, event)
+// 	}
+// }

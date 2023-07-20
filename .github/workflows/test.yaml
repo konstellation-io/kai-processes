@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check folder changes
     outputs:
-      gh-webhook-trigger: ${{ steps.filter.outputs.gh-webhook-trigger }}
+      github-webhook-trigger: ${{ steps.filter.outputs.github-webhook-trigger }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
       id: filter
       with:
         filters: |
-          gh-webhook-trigger:
+          github-webhook-trigger:
             - 'github-webhook-trigger/**/*'
             - '.github/workflows/test.yaml'
 
@@ -40,8 +40,8 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - component: gh-webhook-trigger
-            changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
+          - component: github-webhook-trigger
+            changes: ${{ needs.check-folder-changes.outputs.github-webhook-trigger }}
     steps:
       - name: Checkout code
         if: matrix.changes == 'true'
@@ -85,8 +85,8 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - component: gh-webhook-trigger
-            changes: ${{ needs.check-folder-changes.outputs.gh-webhook-trigger }}
+          - component: github-webhook-trigger
+            changes: ${{ needs.check-folder-changes.outputs.github-webhook-trigger }}
             sonar_token_secret: SONAR_TOKEN
     steps:
       - uses: actions/checkout@v3

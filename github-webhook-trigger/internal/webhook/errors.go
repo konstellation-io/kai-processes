@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-var formatTwoErrors = "%w: %w"
+var formatTwoErrors = "%w: %w" //nolint:gochecknoglobals
 
 var ErrEventNotSupported = errors.New("event not supported")
 var ErrNotAValidEvent = errors.New("not a valid event")
@@ -18,13 +18,13 @@ func NotValidEventError(event string) error {
 }
 
 func GettingEventsFromConfigError(err error) error {
-	return fmt.Errorf(formatTwoErrors, ErrGettingEventsFromConfig, err)
+	return fmt.Errorf(formatTwoErrors, ErrGettingEventsFromConfig, err) //nolint:goerr113
 }
 
 func CreatingWebhookError(err error) error {
-	return fmt.Errorf(formatTwoErrors, ErrCreatingWebhook, err)
+	return fmt.Errorf(formatTwoErrors, ErrCreatingWebhook, err) //nolint:goerr113
 }
 
 func ServerError(err error) error {
-	return fmt.Errorf(formatTwoErrors, ErrServer, err)
+	return fmt.Errorf(formatTwoErrors, ErrServer, err) //nolint:goerr113
 }

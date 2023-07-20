@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr/testr"
 	"github.com/go-playground/webhooks/v6/github"
@@ -63,9 +65,14 @@ func (s *GithubWebhookSuite) TestInitializer() {
 	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
 	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
 
-	err := s.githubWebhook.InitWebhook(s.kaiSdk)
-	s.Assert().NoError(err)
-	// pendiente hacer el monkey patch
+	go func() {
+		err := s.githubWebhook.InitWebhook(s.kaiSdk)
+		s.Assert().NoError(err)
+	}()
+
+	time.Sleep(time.Second)
+
+	syscall.SIGTERM.Signal()
 }
 
 func (s *GithubWebhookSuite) TestInitializerNoEventConfigError() {

@@ -9,15 +9,17 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 )
 
-type GithubWebhookTestExporter struct {
-}
+type GithubWebhookTestExporter struct{}
 
 func NewGithubWebhookTestExporter() *GithubWebhookTestExporter {
 	return &GithubWebhookTestExporter{}
 }
 
-func (gw *GithubWebhookTestExporter) HandleEventRequest(hook *github.Webhook, githubEvents []github.Event,
-	kaiSDK sdk.KaiSDK) func(w http.ResponseWriter, r *http.Request) {
+func (gw *GithubWebhookTestExporter) HandleEventRequest(
+	hook *github.Webhook,
+	githubEvents []github.Event,
+	kaiSDK sdk.KaiSDK,
+) func(w http.ResponseWriter, r *http.Request) {
 	return handleEventRequest(hook, githubEvents, kaiSDK)
 }
 

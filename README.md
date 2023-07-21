@@ -26,7 +26,7 @@ For example:
 ! Github repository needs to be configured also to expose events to "/webhooks" please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
 
 
-### Uploading locally a dockerfile to the registry
+### Uploading a Dockerfile to the registry in the local environment
 
 For doing this we need two things:
 

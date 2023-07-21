@@ -28,7 +28,9 @@ For example:
 
 ### Uploading a Dockerfile to the registry in the local environment
 
-For doing this we need two things:
+Follow this two-step process:
 
-- Doing a Port-forward to the local registry in K9S
-- Executing the following command `minikube image build -t <image_name:tag> . -p kai-local`
+- Open a Port-forward to the local registry in K9S
+- Execute the following command `minikube image build -t <image_name:tag> . -p kai-local`
+
+This will upload the image to a local registry, and will be available to the KAI services.

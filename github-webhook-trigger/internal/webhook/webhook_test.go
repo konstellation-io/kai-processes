@@ -256,3 +256,14 @@ func (s *GithubWebhookSuite) TestInitWebhookCreatingWebhookError() {
 	err := s.githubWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)
 }
+
+func (s *GithubWebhookSuite) TestInitWebhookGetConfigError() {
+	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
+	githubSecret := "mockedSecret"
+
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nats.ErrKeyNotFound)
+
+	err := s.githubWebhook.InitWebhook(s.kaiSdk)
+	s.Assert().Error(err)
+}

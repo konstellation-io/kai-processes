@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/webhooks/v6/github"
 	"github.com/google/uuid"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	centralizedconfiguration "github.com/konstellation-io/kai-sdk/go-sdk/sdk/centralized-configuration"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -52,7 +53,12 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 		return GettingEventsFromConfigError(err)
 	}
 
-	parser, err := github.New(github.Options.Secret(githubSecret))
+	options := make([]github.Option, 0, 1)
+	if githubSecret != "" {
+		options = append(options, github.Options.Secret(githubSecret))
+	}
+
+	parser, err := github.New(options...)
 	if err != nil {
 		return CreatingWebhookError(err)
 	}
@@ -97,7 +103,7 @@ func getConfig(kaiSDK sdk.KaiSDK) (webhookEvents, githubSecret string, err error
 	}
 
 	githubSecret, err = kaiSDK.CentralizedConfig.GetConfig("github_secret", messaging.ProcessScope)
-	if err != nil {
+	if err != nil && !errors.Is(err, centralizedconfiguration.ErrKeyNotFound) {
 		return "", "", err
 	}
 

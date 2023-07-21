@@ -119,7 +119,7 @@ type test struct {
 func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 	const baxterPublicRepoExample = "https://api.github.com/repos/baxterthehacker/public-repo"
 
-	okTests := []test{
+	testUseCases := []test{
 		{
 			name:             "push event",
 			payloadPath:      "../../testdata/push_event.json",
@@ -160,9 +160,6 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 			githubEvents:     []github.Event{github.WorkflowRunEvent},
 			isIgnored:        false,
 		},
-	}
-
-	IgnoredTests := []test{
 		{
 			name:             "unsupported event",
 			payloadPath:      "../../testdata/delete.json",
@@ -174,8 +171,7 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 	}
 
 	allTests := make([]test, 0)
-	allTests = append(allTests, okTests...)
-	allTests = append(allTests, IgnoredTests...)
+	allTests = append(allTests, testUseCases...)
 
 	parser, err := github.New()
 	s.Require().NoError(err)

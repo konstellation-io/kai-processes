@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	path = "/webhooks"
+	path = "/webhook"
 )
 
 const (

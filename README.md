@@ -24,3 +24,11 @@ For example:
 - github_secret = "your_secret"
 
 ! Github repository needs to be configured also to expose events to "/webhooks" please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
+
+
+### Uploading locally a dockerfile to the registry
+
+For doing this we need two things:
+
+- Doing a Port-forward to the local registry in K9S
+- Executing the following command `minikube image build -t <image_name:tag> . -p kai-local`

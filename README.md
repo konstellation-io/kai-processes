@@ -4,7 +4,7 @@ KAI predefined processes
 
 ## Github webhook trigger
 
-The github webhook trigger is a predefined KIO process that creates a webhook listener to a github repository. It will stay listening to user requested events, then trigger a KAI workflow on said event.  
+The github webhook trigger is a predefined KAI process that creates a webhook listener to a github repository. It will stay listening to user requested events, then trigger a KAI workflow on said event.  
 The trigger supports the following event types:
 
 - push

@@ -217,9 +217,7 @@ func (s *GithubWebhookSuite) TestGetEventsFromConfigOK() {
 	events, err := s.githubWebhookTest.GetEventsFromConfig(eventConfig)
 	s.Require().NoError(err)
 
-	for _, event := range expectedEvents {
-		s.Assert().Contains(events, event)
-	}
+	s.ElementsMatch(expectedEvents, events)
 }
 
 func (s *GithubWebhookSuite) TestHandlerEventRequestParseError() {

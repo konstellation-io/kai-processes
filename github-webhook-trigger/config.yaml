@@ -1,0 +1,8 @@
+runner:
+  logger:
+    level: Debug # Info, Debug, Warn, Error, Fatal, Panic
+    encoding: console # console, json
+    output_paths:
+      - stdout
+    error_output_paths:
+      - stderr

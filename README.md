@@ -20,10 +20,10 @@ One being the events the webhook will listen to (_webhook_events_), the other th
 
 #### Input 
 
-| Key            | Type | Value                                                                       |
-|----------------|------|-----------------------------------------------------------------------------| 
-| webhook_events | str  | Possible options (comma separated): push, pull, release, workflow_dispatch, workflow_run      |
-| github_secret  | str  | Github's repository secret (Optional)                                                    |
+| Key            | Optional  | Type | Value                                                                                         |
+|----------------|-----------|------|-----------------------------------------------------------------------------------------------| 
+| webhook_events | no        | str  | Possible options (comma separated): push, pull, release, workflow_dispatch, workflow_run      |
+| github_secret  | yes       | str  | Github's repository secret                                                                    |
 
 ! Github repository needs to be configured also to expose events to "/webhooks" please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
 

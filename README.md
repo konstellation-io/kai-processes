@@ -18,10 +18,12 @@ The trigger supports the following event types:
 The trigger requires adding two configuration options to the process-scoped configuration.
 One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).
 
-For example:
+#### Input 
 
-- webhook_events = "push, pull, workflow_dispatch"
-- github_secret = "your_secret"
+| Key            | Type | Value                                                                       |
+|----------------|------|-----------------------------------------------------------------------------| 
+| webhook_events | str  | Possible options: push, pull, release, workflow_dispatch, workflow_run      |
+| github_secret  | str  | Github's repository secret                                                    |
 
 ! Github repository needs to be configured also to expose events to "/webhooks" please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
 
@@ -34,3 +36,11 @@ Follow this two-step process:
 - Execute the following command `minikube image build -t <image_name:tag> . -p kai-local`
 
 This will upload the image to a local registry, and will be available to the KAI services.
+
+## Output
+
+| Key       | Type | Value                                                                  |
+|-----------|------|------------------------------------------------------------------------| 
+| RequestID | str  | A string uuid                                                          |
+| EventUrl  | str  | An url defined in the github workflow settings                         |
+| Event     | str  | Possible options: push, pull, release, workflow_dispatch, workflow_run | 

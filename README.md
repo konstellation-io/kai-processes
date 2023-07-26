@@ -48,6 +48,8 @@ This will upload the image to a local registry, and will be available to the KAI
 
 ### Unmarshalling the response
 
+#### Json string
+
 Once we get the output we need to convert back from protobuf to JSON, one example in go would be:
 
 ```
@@ -81,7 +83,9 @@ func unmarshalProtobufToJSON(m *structpb.Value) (string, error) {
 }
 ```
 
-### Converting a structpb to a go's struct
+#### Go's struct
+
+This method converts the structpb object to a go struct we send as val any
 
 ```
 func MapStructToStructpb(val any) (*structpb.Struct, error) {

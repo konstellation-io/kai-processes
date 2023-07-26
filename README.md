@@ -80,3 +80,21 @@ func unmarshalProtobufToJSON(m *structpb.Value) (string, error) {
 	return string(jsonData), nil
 }
 ```
+
+### Converting a structpb to a go's struct
+
+```
+func MapStructToStructpb(val any) (*structpb.Struct, error) {
+    marshalledUser, err := json.Marshal(val)
+    if err != nil {
+        return nil, err
+    }
+    structVal := &structpb.Struct{}
+    err = structVal.UnmarshalJSON(marshalledUser)
+    if err != nil {
+        return nil, err
+    }
+
+    return structVal, nil
+}
+```

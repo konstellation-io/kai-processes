@@ -44,3 +44,39 @@ This will upload the image to a local registry, and will be available to the KAI
 | RequestID | str  | A string uuid                                                          |
 | EventUrl  | str  | An url defined in the github workflow settings                         |
 | Event     | str  | Possible options: push, pull, release, workflow_dispatch, workflow_run | 
+
+
+### Unmarshalling the response
+
+Once we get the output we need to convert back from protobuf to JSON, one example in go would be:
+
+```
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
+	structpb "google.golang.org/protobuf/types/known/structpb"
+)
+
+func unmarshalProtobufToJSON(m *structpb.Value) (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("input protobuf Value is nil")
+	}
+
+	// Convert the structpb.Value to a map[string]interface{}
+	var data map[string]interface{}
+	err := jsonpb.Unmarshal(m, &data)
+	if err != nil {
+		return "", err
+	}
+
+	// Marshal the map to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonData), nil
+}
+```

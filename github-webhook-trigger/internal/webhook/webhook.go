@@ -74,7 +74,7 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		kaiSDK.Logger.Info("Server listening on %s\n", srv.Addr)
+		kaiSDK.Logger.Info("Server listed", "addr", srv.Addr)
 
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			signalCh <- syscall.SIGTERM
@@ -82,7 +82,7 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 	}()
 
 	sig := <-signalCh
-	kaiSDK.Logger.Info("Received signal: %v", sig)
+	kaiSDK.Logger.Info("Received signal", "signal", sig)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

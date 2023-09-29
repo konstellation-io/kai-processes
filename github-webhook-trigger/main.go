@@ -7,7 +7,6 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {
@@ -23,7 +22,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 }
 
 func runnerFunc(tr *trigger.Runner, sdk sdk.KaiSDK) {
-	sdk.Messaging.SendOutput(&anypb.Any{})
+	sdk.Logger.Info("Running webhook handler")
 }
 
 func main() {

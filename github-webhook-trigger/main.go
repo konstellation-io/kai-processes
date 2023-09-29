@@ -10,14 +10,14 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func initializer(sdk sdk.KaiSDK) {
-	sdk.Logger.Info("Initializing webhook")
+func initializer(kaiSDK sdk.KaiSDK) {
+	kaiSDK.Logger.Info("Initializing webhook")
 
 	wh := webhook.NewGithubWebhook()
 
-	err := wh.InitWebhook(sdk)
+	err := wh.InitWebhook(kaiSDK)
 	if err != nil {
-		sdk.Logger.Error(err, "error creating webhook")
+		kaiSDK.Logger.Error(err, "error creating webhook")
 		os.Exit(1)
 	}
 }

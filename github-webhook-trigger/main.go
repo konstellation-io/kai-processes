@@ -9,15 +9,15 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 )
 
-func initializer(kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Initializing webhook")
+func initializer(wh webhook.Webhook) func(kaiSDK sdk.KaiSDK) {
+	return func(kaiSDK sdk.KaiSDK) {
+		kaiSDK.Logger.Info("Initializing webhook")
 
-	wh := webhook.NewGithubWebhook()
-
-	err := wh.InitWebhook(kaiSDK)
-	if err != nil {
-		kaiSDK.Logger.Error(err, "error creating webhook")
-		os.Exit(1)
+		err := wh.InitWebhook(kaiSDK)
+		if err != nil {
+			kaiSDK.Logger.Error(err, "error creating webhook")
+			os.Exit(1)
+		}
 	}
 }
 
@@ -26,9 +26,11 @@ func runnerFunc(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 }
 
 func main() {
+	wh := webhook.NewGithubWebhook()
+
 	r := runner.NewRunner().
 		TriggerRunner().
-		WithInitializer(initializer).
+		WithInitializer(initializer(wh)).
 		WithRunner(runnerFunc)
 
 	r.Run()

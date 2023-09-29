@@ -21,8 +21,8 @@ func initializer(kaiSDK sdk.KaiSDK) {
 	}
 }
 
-func runnerFunc(tr *trigger.Runner, sdk sdk.KaiSDK) {
-	sdk.Logger.Info("Running webhook handler")
+func runnerFunc(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
+	kaiSDK.Logger.Info("Running webhook handler")
 }
 
 func main() {

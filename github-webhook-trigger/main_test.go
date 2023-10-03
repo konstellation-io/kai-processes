@@ -34,13 +34,13 @@ func (s *MainSuite) TearDownTest() {
 	s.githubWebhookMock.ExpectedCalls = nil
 }
 
-func (s *MainSuite) TestRunnerFunc() {
+func (s *MainSuite) TestInitializer() {
 	s.githubWebhookMock.On("InitWebhook", s.kaiSdkMock).Return(nil)
 
-	runnerFunc(s.githubWebhookMock)(nil, s.kaiSdkMock)
+	initializer(s.githubWebhookMock)(s.kaiSdkMock)
 }
 
-func (s *MainSuite) TestRunnerFuncError() {
+func (s *MainSuite) TestInitializerError() {
 	s.githubWebhookMock.On("InitWebhook", s.kaiSdkMock).Return(fmt.Errorf("mocked error"))
 
 	fakeExitCalled := 0
@@ -51,5 +51,9 @@ func (s *MainSuite) TestRunnerFuncError() {
 	patch := monkey.Patch(os.Exit, fakeExit)
 	defer patch.Unpatch()
 
-	runnerFunc(s.githubWebhookMock)(nil, s.kaiSdkMock)
+	initializer(s.githubWebhookMock)(s.kaiSdkMock)
+}
+
+func (s *MainSuite) TestRunnerFunc() {
+	runnerFunc(nil, s.kaiSdkMock)
 }

@@ -9,9 +9,13 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 )
 
-func initializer(wh webhook.Webhook) func(kaiSDK sdk.KaiSDK) {
-	return func(kaiSDK sdk.KaiSDK) {
-		kaiSDK.Logger.Info("Initializing webhook")
+func initializer(kaiSDK sdk.KaiSDK) {
+	kaiSDK.Logger.Info("Initializing webhook")
+}
+
+func runnerFunc(wh webhook.Webhook) func(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
+	return func(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
+		kaiSDK.Logger.Info("Running webhook handler")
 
 		err := wh.InitWebhook(kaiSDK)
 		if err != nil {
@@ -21,17 +25,13 @@ func initializer(wh webhook.Webhook) func(kaiSDK sdk.KaiSDK) {
 	}
 }
 
-func runnerFunc(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Running webhook handler")
-}
-
 func main() {
 	wh := webhook.NewGithubWebhook()
 
 	r := runner.NewRunner().
 		TriggerRunner().
-		WithInitializer(initializer(wh)).
-		WithRunner(runnerFunc)
+		WithInitializer(initializer).
+		WithRunner(runnerFunc(wh))
 
 	r.Run()
 }

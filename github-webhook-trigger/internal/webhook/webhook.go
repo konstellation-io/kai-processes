@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	path = "/webhook"
+	path = "/webhook-github"
 )
 
 const (

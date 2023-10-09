@@ -1,37 +1,66 @@
 package main
 
 import (
-	cronjob "algo/kai-processes/cronjob-trigger/internal/cronjob"
 	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/google/uuid"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/robfig/cron/v3"
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Initializing cronjob")
 }
 
-func runnerFunc(cr cronjob.Cronjob) func(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	return func(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-		kaiSDK.Logger.Info("Running cronjob handler")
+func cronjobRunner(tr *trigger.Runner, sdk sdk.KaiSDK) {
+	sdk.Logger.Info("Starting cronjob runner")
+	time, _ := sdk.CentralizedConfig.GetConfig("cron")
+	message, _ := sdk.CentralizedConfig.GetConfig("message")
 
-		err := cr.InitCronjob(kaiSDK)
-		if err != nil {
-			kaiSDK.Logger.Error(err, "error creating cronjob")
-			os.Exit(1)
+	c := cron.New(
+		cron.WithLogger(sdk.Logger),
+		cron.WithSeconds(),
+	)
+
+	_, err := c.AddFunc(time, func() {
+		requestID := uuid.New().String()
+		sdk.Logger.Info("Cronjob triggered, new message sent", "requestID", requestID)
+
+		val := wrappers.StringValue{
+			Value: message,
 		}
+
+		err := sdk.Messaging.SendOutputWithRequestID(&val, requestID)
+		if err != nil {
+			sdk.Logger.Error(err, "Error sending output")
+			return
+		}
+	})
+	if err != nil {
+		sdk.Logger.Error(err, "Error adding cronjob")
+		return
 	}
+
+	c.Start()
+
+	// Handle sigterm and await termChan signal
+	termChan := make(chan os.Signal, 1)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	<-termChan
+
+	c.Stop()
 }
 
 func main() {
-	cr := cronjob.NewCronjob()
-
 	r := runner.NewRunner().
 		TriggerRunner().
 		WithInitializer(initializer).
-		WithRunner(runnerFunc(cr))
+		WithRunner(cronjobRunner)
 
 	r.Run()
 }

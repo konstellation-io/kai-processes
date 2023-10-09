@@ -18,4 +18,5 @@ centralized_configuration:
   process:
     bucket: process
     config:
-      cron: * * * * * ? *
+      cron: '30 * * * * *'
+      message: 'Hello world'

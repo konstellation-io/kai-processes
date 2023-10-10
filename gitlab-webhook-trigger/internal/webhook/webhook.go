@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	path = "/gitlab-webhook"
+	path = "/webhook-gitlab"
 )
 
 const (

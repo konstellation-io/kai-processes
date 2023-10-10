@@ -8,9 +8,18 @@ The trigger requires adding two configuration options:
 - A predefined cron time with the structure `cron: * * * * * *` which equals to seconds | minutes | hours | days | months | years
 - The message to be sent
 
-### Input 
+### Config 
 
-It doesn't accept inputs.
+The configuration should be defined inside the `centralized configuration scope`, for example:
+
+```
+centralized_configuration:
+  process:
+    bucket: process
+    config:
+      cron: '30 * * * * *'
+      message: 'Hello world'
+```
 
 ## Output
 

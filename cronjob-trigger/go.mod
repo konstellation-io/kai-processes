@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect

@@ -8,7 +8,7 @@ The trigger requires adding two configuration options:
 - A predefined cron time with the structure `cron: * * * * * *` which equals to seconds | minutes | hours | days | months | years
 - The message to be sent
 
-## Input 
+### Configuration 
 
 The configuration should be defined inside the `centralized configuration scope`:
 
@@ -17,7 +17,7 @@ The configuration should be defined inside the `centralized configuration scope`
 | cron | no        | str  | Cron expression     |
 | message | yes        | str  | Message to be sent in the generated events      |
 
-### Example
+#### Example
 
 ```
 centralized_configuration:
@@ -28,7 +28,7 @@ centralized_configuration:
       message: 'Hello world'
 ```
 
-## Output
+### Output
 
 It triggers an event of sending a message through the module messaging in the sdk in the predefined interval of time.
 
@@ -38,7 +38,7 @@ It triggers an event of sending a message through the module messaging in the sd
 | message  | str  | The defined message if any    |
 | time     | str  | The timestamp of the generated event |
 
-### Example
+#### Example
 
 ```
 {

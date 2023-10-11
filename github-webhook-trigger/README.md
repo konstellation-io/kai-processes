@@ -14,7 +14,7 @@ The trigger supports the following event types:
 The trigger requires adding two configuration options to the process-scoped configuration.
 One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).
 
-## Input 
+### Input 
 
 | Key            | Optional  | Type | Value                                                                                         |
 |----------------|-----------|------|-----------------------------------------------------------------------------------------------| 
@@ -23,7 +23,7 @@ One being the events the webhook will listen to (_webhook_events_), the other th
 
 ! Github repository needs to be configured also to expose events to `/webhook-github` please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
 
-## Output
+### Output
 
 
 | Key       | Type | Value                                                                  |
@@ -34,7 +34,7 @@ One being the events the webhook will listen to (_webhook_events_), the other th
 
 The url can be defined in `https://github.com/<YOUR_REPOSITORY>/settings/hooks`
 
-### Example
+#### Example
 
 ```
 {

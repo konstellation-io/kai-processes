@@ -193,13 +193,12 @@ func (s *GithubWebhookSuite) TestHandlerEventRequest() {
 			})
 			s.Require().NoError(err)
 
-			if tc.isIgnored {
-				s.messagingMock.ExpectedCalls = nil
-			} else {
+			if !tc.isIgnored {
 				s.messagingMock.On("SendOutputWithRequestID",
 					expectedResponse,
 					mock.AnythingOfType("string")).
-					Return(nil)
+					Return(nil).
+					Times(1)
 			}
 
 			handlerFunction := s.githubWebhookTest.HandleEventRequest(parser, tc.githubEvents, s.kaiSdk)

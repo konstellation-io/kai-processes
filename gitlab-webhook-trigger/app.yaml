@@ -1,0 +1,25 @@
+metadata:
+  product_id: Github trigger product
+  workflow_id: Github trigger workflow
+  process_id: Github trigger process
+  version_id: Github trigger version v1.0.0
+  base_path: '/Some/Path'
+
+nats:
+  url: 'nats://localhost:4222'
+  stream: github-trigger
+  output: github-trigger-output
+  object_store: object-store
+
+centralized_configuration:
+  global:
+    bucket: global
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process
+    config:
+      webhook_events: push, pull, release
+      github_secret: value2

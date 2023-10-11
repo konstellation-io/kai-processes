@@ -11,7 +11,6 @@ import (
 	"github.com/go-logr/logr/testr"
 	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	"github.com/stretchr/testify/suite"
 )
 

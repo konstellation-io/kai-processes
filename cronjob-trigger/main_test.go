@@ -51,15 +51,15 @@ func (s *MainSuite) TestInitializer() {
 }
 
 func (s *MainSuite) TestCronjobRunnerFunc() {
-	s.centralizedConfigMock.On("GetConfig", "cron", messaging.ProcessScope).Return("30 * * * * *", nil)
-	s.centralizedConfigMock.On("GetConfig", "message", messaging.ProcessScope).Return("test message", nil)
+	s.centralizedConfigMock.On("GetConfig", "cron").Return("30 * * * * *", nil)
+	s.centralizedConfigMock.On("GetConfig", "message").Return("test message", nil)
 
 	cronjobRunner(nil, s.kaiSdk)
 }
 
 func (s *MainSuite) TestCronjobRunnerFunc_Error() {
-	s.centralizedConfigMock.On("GetConfig", "cron", messaging.ProcessScope).Return("30 * * * * *", nil)
-	s.centralizedConfigMock.On("GetConfig", "message", messaging.ProcessScope).Return("", fmt.Errorf("mocked error"))
+	s.centralizedConfigMock.On("GetConfig", "cron").Return("30 * * * * *", nil)
+	s.centralizedConfigMock.On("GetConfig", "message").Return("", fmt.Errorf("mocked error"))
 
 	fakeExitCalled := 0
 	fakeExit := func(int) {

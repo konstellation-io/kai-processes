@@ -4,46 +4,52 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"github.com/robfig/cron/v3"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Initializing cronjob")
 }
 
-func cronjobRunner(tr *trigger.Runner, sdk sdk.KaiSDK) {
-	sdk.Logger.Info("Starting cronjob runner")
-	time, _ := sdk.CentralizedConfig.GetConfig("cron")
-	message, _ := sdk.CentralizedConfig.GetConfig("message")
+func cronjobRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
+	kaiSDK.Logger.Info("Starting cronjob runner")
+	cronTime, _ := kaiSDK.CentralizedConfig.GetConfig("cron")
+	message, _ := kaiSDK.CentralizedConfig.GetConfig("message")
 
 	c := cron.New(
-		cron.WithLogger(sdk.Logger),
+		cron.WithLogger(kaiSDK.Logger),
 		cron.WithSeconds(),
 	)
 
-	_, err := c.AddFunc(time, func() {
+	_, err := c.AddFunc(cronTime, func() {
 		requestID := uuid.New().String()
-		sdk.Logger.Info("Cronjob triggered, new message sent", "requestID", requestID)
+		kaiSDK.Logger.Info("Cronjob triggered, new message sent", "requestID", requestID)
 
-		val := wrappers.StringValue{
-			Value: message,
+		m, err := structpb.NewValue(map[string]interface{}{
+			"message": message,
+			"time":    time.Now().Format("Mon Jan 2 15:04:05 MST 2006"),
+		})
+		if err != nil {
+			kaiSDK.Logger.Error(err, "error creating response")
+			os.Exit(1)
 		}
 
-		err := sdk.Messaging.SendOutputWithRequestID(&val, requestID)
+		err = kaiSDK.Messaging.SendOutputWithRequestID(m, requestID)
 		if err != nil {
-			sdk.Logger.Error(err, "Error sending output")
-			return
+			kaiSDK.Logger.Error(err, "Error sending output")
+			os.Exit(1)
 		}
 	})
 	if err != nil {
-		sdk.Logger.Error(err, "Error adding cronjob")
-		return
+		kaiSDK.Logger.Error(err, "Error adding cronjob")
+		os.Exit(1)
 	}
 
 	c.Start()

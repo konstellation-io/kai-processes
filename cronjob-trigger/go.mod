@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/go-logr/logr v1.2.4
-	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.1
 	github.com/konstellation-io/kai-sdk/go-sdk v1.1.0
 	github.com/robfig/cron/v3 v3.0.1
@@ -40,7 +39,7 @@ require (
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.30.0
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

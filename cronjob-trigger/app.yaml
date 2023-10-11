@@ -11,6 +11,8 @@ nats:
   output: cronjob-trigger-output
 
 centralized_configuration:
+  global:
+    bucket: global
   product:
     bucket: product
   workflow:

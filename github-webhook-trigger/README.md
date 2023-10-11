@@ -14,14 +14,14 @@ The trigger supports the following event types:
 The trigger requires adding two configuration options to the process-scoped configuration.
 One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).
 
+! Github repository needs to be configured also to expose events to the webhook please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
+
 ### Configuration
 
 | Key            | Optional  | Type | Value                                                                                         |
 |----------------|-----------|------|-----------------------------------------------------------------------------------------------|
 | webhook_events | no        | str  | Possible options (comma separated): push, pull, release, workflow_dispatch, workflow_run      |
 | github_secret  | yes       | str  | Github's repository secret.  |
-
-! Github repository needs to be configured also to expose events to `/webhook-github` please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
 
 ### Output
 

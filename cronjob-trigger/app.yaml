@@ -1,0 +1,24 @@
+metadata:
+  product_id: Cronjob trigger product
+  workflow_id: Cronjob trigger workflow
+  process_id: Cronjob trigger process
+  version_id: Cronjob trigger version v1.0.0
+  base_path: '/Some/Path'
+
+nats:
+  url: 'nats://localhost:4222'
+  stream: cronjob-trigger
+  output: cronjob-trigger-output
+
+centralized_configuration:
+  global:
+    bucket: global
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process
+    config:
+      cron: '30 * * * * *'
+      message: 'Hello world'

@@ -12,6 +12,8 @@ nats:
   object_store: object-store
 
 centralized_configuration:
+  global:
+    bucket: global
   product:
     bucket: product
   workflow:

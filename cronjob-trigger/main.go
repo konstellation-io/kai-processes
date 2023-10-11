@@ -10,6 +10,7 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	"github.com/robfig/cron/v3"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -20,8 +21,8 @@ func initializer(kaiSDK sdk.KaiSDK) {
 
 func cronjobRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Starting cronjob runner")
-	cronTime, _ := kaiSDK.CentralizedConfig.GetConfig("cron")
-	message, _ := kaiSDK.CentralizedConfig.GetConfig("message")
+	cronTime, _ := kaiSDK.CentralizedConfig.GetConfig("cron", messaging.ProcessScope)
+	message, _ := kaiSDK.CentralizedConfig.GetConfig("message", messaging.ProcessScope)
 
 	c := cron.New(
 		cron.WithLogger(kaiSDK.Logger),

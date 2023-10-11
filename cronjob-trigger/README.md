@@ -8,7 +8,7 @@ The trigger requires adding two configuration options:
 - A predefined cron time with the structure `cron: * * * * * *` which equals to seconds | minutes | hours | days | months | years
 - The message to be sent
 
-### Config 
+## Input 
 
 The configuration should be defined inside the `centralized configuration scope`:
 

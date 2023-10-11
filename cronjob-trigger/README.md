@@ -17,7 +17,7 @@ The configuration should be defined inside the `centralized configuration scope`
 | cron | no        | str  | Cron expression     |
 | message | yes        | str  | Message to be sent in the generated events      |
 
-#### Example
+### Example
 
 ```
 centralized_configuration:

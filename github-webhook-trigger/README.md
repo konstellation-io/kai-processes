@@ -37,8 +37,8 @@ The url can be defined in `https://github.com/<YOUR_REPOSITORY>/settings/hooks`
 
 ```json
 {
- "requestID: 123
- "eventUrl": http:://example/webhook-github
- "event": push
+ "requestID": "123",
+ "eventUrl": "http:://example/webhook-github",
+ "event": "push"
 }
 ```

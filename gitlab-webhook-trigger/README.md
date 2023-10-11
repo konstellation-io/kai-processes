@@ -34,8 +34,8 @@ One being the events the webhook will listen to (_webhook_events_), the other th
 
 ```json
 {
- "requestID: 123
- "eventUrl": http:://example/webhook-github
- "event": Push Hook
+ "requestID": "123",
+ "eventUrl": "http:://example/webhook-github",
+ "event": "Push Hook"
 }
 ```

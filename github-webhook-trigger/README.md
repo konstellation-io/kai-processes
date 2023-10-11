@@ -14,7 +14,7 @@ The trigger supports the following event types:
 The trigger requires adding two configuration options to the process-scoped configuration.
 One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).
 
-### Input 
+## Input 
 
 | Key            | Optional  | Type | Value                                                                                         |
 |----------------|-----------|------|-----------------------------------------------------------------------------------------------| 

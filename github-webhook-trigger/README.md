@@ -14,19 +14,31 @@ The trigger supports the following event types:
 The trigger requires adding two configuration options to the process-scoped configuration.
 One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).
 
-! Github repository needs to be configured also to expose events to "/webhooks" please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
-
-### Config
+### Configuration
 
 | Key            | Optional  | Type | Value                                                                                         |
 |----------------|-----------|------|-----------------------------------------------------------------------------------------------|
 | webhook_events | no        | str  | Possible options (comma separated): push, pull, release, workflow_dispatch, workflow_run      |
-| github_secret  | yes       | str  | Github's webhook secret
+| github_secret  | yes       | str  | Github's repository secret.  |
 
-## Output (JSON)
+! Github repository needs to be configured also to expose events to `/webhook-github` please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
+
+### Output
 
 | Key       | Type | Value                                                                  |
 |-----------|------|------------------------------------------------------------------------|
 | requestID | str  | A string uuid                                                          |
 | eventUrl  | str  | The url from the repo triggering the event                             |
 | event     | str  | The name of the event that has occurred                                |
+
+The url can be defined in `https://github.com/<YOUR_REPOSITORY>/settings/hooks`
+
+#### Example
+
+```json
+{
+ "requestID: 123
+ "eventUrl": http:://example/webhook-github
+ "event": push
+}
+```

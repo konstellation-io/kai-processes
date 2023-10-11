@@ -9,6 +9,7 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/go-logr/logr/testr"
+	"github.com/golang/mock/gomock"
 	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"github.com/stretchr/testify/suite"
@@ -52,6 +53,7 @@ func (s *MainSuite) TestInitializer() {
 func (s *MainSuite) TestCronjobRunnerFunc() {
 	s.centralizedConfigMock.On("GetConfig", "cron").Return("30 * * * * *", nil)
 	s.centralizedConfigMock.On("GetConfig", "message").Return("test message", nil)
+	s.messagingMock.On("SendOutputWithRequestID", gomock.Any(), gomock.Any()).Return(nil)
 
 	cronjobRunner(nil, s.kaiSdk)
 }

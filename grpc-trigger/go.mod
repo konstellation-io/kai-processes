@@ -3,6 +3,7 @@ module github.com/konstellation-io/kai-processes/grpc-trigger
 go 1.20
 
 require (
+	github.com/google/uuid v1.3.1
 	github.com/konstellation-io/kai-sdk/go-sdk v1.1.0
 	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
@@ -13,7 +14,6 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/uuid v1.3.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect

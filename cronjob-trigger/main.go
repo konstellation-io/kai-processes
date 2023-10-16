@@ -34,11 +34,11 @@ func cronjobRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		kaiSDK.Logger.Info("Cronjob triggered, new message sent", "requestID", requestID)
 
 		m, err := structpb.NewValue(map[string]interface{}{
-			"status_code": 200,
 			"message": message,
+			"time":    time.Now().Format("Mon Jan 2 15:04:05 MST 2006"),
 		})
 		if err != nil {
-			kaiSDK.Logger.Error(err, "Error creating response")
+			kaiSDK.Logger.Error(err, "error creating response")
 			os.Exit(1)
 		}
 

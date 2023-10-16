@@ -1,0 +1,19 @@
+metadata:
+  product_id: GRPC Trigger product
+  workflow_id: GRPC Trigger workflow
+  process_id: GRPC Trigger process
+  version_id: GRPC Trigger version v1.0.0
+  base_path: "/Some/Path"
+
+nats:
+  url: "nats://localhost:4222"
+  stream: trigger
+  output: grpc-trigger-output
+
+centralized_configuration:
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process

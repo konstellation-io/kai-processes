@@ -5,17 +5,13 @@ import (
 	"net"
 	"os/signal"
 	"syscall"
-	"time"
-
-	context2 "context"
 
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"google.golang.org/grpc"
 
-	//triggerpb "github.com/konstellation-io/kai-processes/grpc-trigger/proto"
-	triggerpb "grpc_trigger/proto"
+	triggerpb "github.com/konstellation-io/kai-processes/grpc-trigger/proto"
 )
 
 func main() {
@@ -33,15 +29,17 @@ func main() {
 }
 
 type server struct {
-	triggerpb.UnimplementedGreeterServer
+	triggerpb.UnimplementedGRPCTriggerServer
 }
 
 func NewServer() *server {
 	return &server{}
 }
 
-func (s *server) SayHello(ctx context.Context, in *triggerpb.Request) (*triggerpb.HelloReply, error) {
-	return &triggerpb.HelloReply{Message: in.Name + " world"}, nil
+func (s *server) ResponseFunc(ctx context.Context, in *triggerpb.Request) (*triggerpb.Response, error) {
+	return &triggerpb.Response{
+		// TODO
+	}, nil
 }
 
 func grpcServerRunner(tr *trigger.Runner, sdk sdk.KaiSDK) {
@@ -53,11 +51,12 @@ func grpcServerRunner(tr *trigger.Runner, sdk sdk.KaiSDK) {
 		sdk.Logger.Error(err, "Failed to listen")
 	}
 
-	bgCtx, stop := signal.NotifyContext(context2.Background(), syscall.SIGINT, syscall.SIGTERM)
+	bgCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	// Create a gRPC server object
 	srv := grpc.NewServer()
+	triggerpb.RegisterGRPCTriggerServer(srv, NewServer())
 
 	// Serve gRPC Server
 	sdk.Logger.Info("Serving gRPC on 0.0.0.0:8080")
@@ -69,15 +68,8 @@ func grpcServerRunner(tr *trigger.Runner, sdk sdk.KaiSDK) {
 
 	<-bgCtx.Done()
 	stop()
+
 	sdk.Logger.Info("Shutting down server...")
-
-	// The sdk is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
-	bgCtx, cancel := context2.WithTimeout(context2.Background(), 5*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(bgCtx); err != nil {
-		sdk.Logger.Error(err, "Error shutting down server")
-	}
-
+	srv.GracefulStop()
 	sdk.Logger.Info("Server stopped")
 }

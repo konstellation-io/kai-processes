@@ -44,7 +44,7 @@ func NewServer(tr *trigger.Runner, kaiSDK sdk.KaiSDK) *server {
 	}
 }
 
-func (s *server) ResponseFunc(ctx context.Context, req *triggerpb.Request) (*triggerpb.Response, error) {
+func (s *server) Trigger(ctx context.Context, req *triggerpb.Request) (*triggerpb.Response, error) {
 	reqID := uuid.New().String()
 	s.kaiSDK.Logger.Info("GRPC triggered, new message sent", "requestID", reqID)
 

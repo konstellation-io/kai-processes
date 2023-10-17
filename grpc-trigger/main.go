@@ -12,6 +12,7 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	triggerpb "github.com/konstellation-io/kai-processes/grpc-trigger/proto"
@@ -99,6 +100,7 @@ func grpcServerRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	// Create a gRPC server object
 	srv := grpc.NewServer()
 	triggerpb.RegisterGRPCTriggerServer(srv, NewServer(tr, kaiSDK))
+	reflection.Register(srv)
 
 	// Serve gRPC Server
 	kaiSDK.Logger.Info("Serving gRPC on 0.0.0.0:8080")

@@ -68,12 +68,29 @@ func (s *server) Trigger(ctx context.Context, req *triggerpb.Request) (*triggerp
 	responseChannel := s.tr.GetResponseChannel(reqID)
 	response := <-responseChannel
 
+	s.kaiSDK.Logger.Info("response recieved", "response", response)
+
 	var respData struct {
 		StatusCode string `json:"status_code"`
 		Message    string `json:"message"`
 	}
 
-	err = json.Unmarshal(response.GetValue(), &respData)
+	responsePb := new(structpb.Value)
+	if err := response.UnmarshalTo(responsePb); err != nil {
+		s.kaiSDK.Logger.Error(err, "error while creating Value from Any")
+		return nil, err
+	}
+	response.UnmarshalTo(responsePb)
+
+	responsePbJSON, err := responsePb.MarshalJSON()
+	if err != nil {
+		s.kaiSDK.Logger.Error(err, "error marshalling response")
+		return nil, err
+	}
+
+	s.kaiSDK.Logger.Info("json bytes", "json", string(responsePbJSON))
+
+	err = json.Unmarshal(responsePbJSON, &respData)
 	if err != nil {
 		s.kaiSDK.Logger.Error(err, "error unmarshalling response")
 		return nil, err

@@ -5,7 +5,7 @@ The cronjob trigger is a predefined KAI process that will trigger an action in a
 ## How to setup
 
 The trigger requires adding two configuration options:
-- A predefined cron time with the structure `cron: * * * * * *` which equals to seconds | minutes | hours | days | months | years
+- A predefined cron time with the structure `cron: * * * * * *` which equals to seconds | minutes | hours | days | months | years or "@every XT" being X a number and T a timescale for example "@every 10s"
 - The message to be sent
 
 ### Configuration 

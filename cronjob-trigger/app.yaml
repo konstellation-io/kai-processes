@@ -20,5 +20,5 @@ centralized_configuration:
   process:
     bucket: process
     config:
-      cron: '30 * * * * *'
+      cron: '@every 10s'
       message: 'Hello world'

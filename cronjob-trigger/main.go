@@ -38,7 +38,7 @@ func cronjobRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 			"time":    time.Now().Format("Mon Jan 2 15:04:05 MST 2006"),
 		})
 		if err != nil {
-			kaiSDK.Logger.Error(err, "Error creating response")
+			kaiSDK.Logger.Error(err, "error creating response")
 			os.Exit(1)
 		}
 

@@ -76,3 +76,38 @@ kli process-registry register trigger github-trigger --dockerfile ./github-webho
 ```
 
 This will upload the image to a local registry, and will be available to the KAI services.
+
+
+## Unpacking proto any to structpb in a process
+
+Given a structpb being defined as:
+
+``` go
+m, err := structpb.NewValue(map[string]interface{}{
+    "param1": "example"
+})
+```
+
+which we sent using the sdk with `s.kaiSDK.Messaging.SendOutputWithRequestID(m, reqID)`
+or we just got from another third party service, we need first to create the struct to fill with
+the given data and then unpack the value to it, which then we can use or transform to another types like JSON:
+
+``` go
+var respData struct {
+    Param1 string `json:"param1"`
+}
+
+responsePb := new(structpb.Value)
+err := response.UnmarshalTo(responsePb)
+responsePbJSON, err := responsePb.MarshalJSON()
+err = json.Unmarshal(responsePbJSON, &respData)
+param1 := respData.Param1
+```
+
+``` python
+    input_proto = Struct()
+    response.Unpack(input_proto)
+
+    param1 = input_proto.fields["param1"].string_value
+```
+

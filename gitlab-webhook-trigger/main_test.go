@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
-	"github.com/konstellation-io/kai-processes/github-webhook-trigger/internal/mocks"
+	"github.com/konstellation-io/kai-processes/gitlab-webhook-trigger/internal/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"github.com/stretchr/testify/suite"
 )
@@ -17,7 +17,7 @@ type MainSuite struct {
 	suite.Suite
 
 	kaiSdkMock        sdk.KaiSDK
-	githubWebhookMock *mocks.WebhookMock
+	gitlabWebhookMock *mocks.WebhookMock
 }
 
 func TestMainSuite(t *testing.T) {
@@ -25,13 +25,13 @@ func TestMainSuite(t *testing.T) {
 }
 
 func (s *MainSuite) SetupSuite() {
-	s.githubWebhookMock = mocks.NewWebhookMock(s.T())
+	s.gitlabWebhookMock = mocks.NewWebhookMock(s.T())
 	s.kaiSdkMock = sdk.KaiSDK{}
 }
 
 func (s *MainSuite) TearDownTest() {
-	s.githubWebhookMock.AssertExpectations(s.T())
-	s.githubWebhookMock.ExpectedCalls = nil
+	s.gitlabWebhookMock.AssertExpectations(s.T())
+	s.gitlabWebhookMock.ExpectedCalls = nil
 }
 
 func (s *MainSuite) TestInitializer() {
@@ -39,13 +39,13 @@ func (s *MainSuite) TestInitializer() {
 }
 
 func (s *MainSuite) TestRunnerFunc() {
-	s.githubWebhookMock.On("InitWebhook", s.kaiSdkMock).Return(nil)
+	s.gitlabWebhookMock.On("InitWebhook", s.kaiSdkMock).Return(nil)
 
-	runnerFunc(s.githubWebhookMock)(nil, s.kaiSdkMock)
+	runnerFunc(s.gitlabWebhookMock)(nil, s.kaiSdkMock)
 }
 
 func (s *MainSuite) TestRunnerFuncError() {
-	s.githubWebhookMock.On("InitWebhook", s.kaiSdkMock).Return(fmt.Errorf("mocked error"))
+	s.gitlabWebhookMock.On("InitWebhook", s.kaiSdkMock).Return(fmt.Errorf("mocked error"))
 
 	fakeExitCalled := 0
 	fakeExit := func(int) {
@@ -55,5 +55,5 @@ func (s *MainSuite) TestRunnerFuncError() {
 	patch := monkey.Patch(os.Exit, fakeExit)
 	defer patch.Unpatch()
 
-	runnerFunc(s.githubWebhookMock)(nil, s.kaiSdkMock)
+	runnerFunc(s.gitlabWebhookMock)(nil, s.kaiSdkMock)
 }

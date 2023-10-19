@@ -1,36 +1,113 @@
 # kai-processes
 
-KAI predefined processes
+This repo contains the KAI predefined processes.
 
-## Github webhook trigger
+## How to use
 
-The github webhook trigger is a predefined KAI process that creates a webhook listener to a github repository. It will stay listening to user requested events, then trigger a KAI workflow on said event.  
-The trigger supports the following event types:
+All predefined processes will publish a protobuf compatible structure containing a json inside with key value pairs. Each process will post different json pairs, each explained in their own README.
 
-- push
-- pull
-- release
-- workflow_dispatch
-- workflow_run
+The process receiving requests from predefined nodes need to be prepared for this format of messages.  
+Here are some examples.
 
-### How to setup
+### Unmarshalling the response
 
-The trigger requires adding two configuration options to the process-scoped configuration.
-One being the events the webhook will listen to (_webhook_events_), the other the github secret needed to interact with the github repo (_github_secret_).
+#### Json string
 
-For example:
+Once we get the output we need to convert back from protobuf to JSON, one example in go would be:
 
-- webhook_events = "push, pull, workflow_dispatch"
-- github_secret = "your_secret"
+```go
+import (
+ "encoding/json"
+ "fmt"
+ "github.com/golang/protobuf/jsonpb"
+ "github.com/golang/protobuf/proto"
+ structpb "google.golang.org/protobuf/types/known/structpb"
+)
 
-! Github repository needs to be configured also to expose events to "/webhooks" please check [webhook_guide](https://docs.github.com/webhooks/) for more information.
+func unmarshalProtobufToJSON(m *structpb.Value) (string, error) {
+ if m == nil {
+  return "", fmt.Errorf("input protobuf Value is nil")
+ }
 
+ // Convert the structpb.Value to a map[string]interface{}
+ var data map[string]interface{}
+ err := jsonpb.Unmarshal(m, &data)
+ if err != nil {
+  return "", err
+ }
 
-### Uploading a Dockerfile to the registry in the local environment
+ // Marshal the map to JSON
+ jsonData, err := json.Marshal(data)
+ if err != nil {
+  return "", err
+ }
 
-Follow this two-step process:
+ return string(jsonData), nil
+}
+```
 
-- Open a Port-forward to the local registry in K9S
-- Execute the following command `minikube image build -t <image_name:tag> . -p kai-local`
+#### Go's struct
+
+This method converts the structpb object to a go struct we send as val any
+
+```go
+func MapStructToStructpb(val any) (*structpb.Struct, error) {
+    marshalledUser, err := json.Marshal(val)
+    if err != nil {
+        return nil, err
+    }
+    structVal := &structpb.Struct{}
+    err = structVal.UnmarshalJSON(marshalledUser)
+    if err != nil {
+        return nil, err
+    }
+
+    return structVal, nil
+}
+```
+
+## Uploading a predefined process to the local environment
+
+If you wish to upload by yourself any predefined process to your local KAI you can do as if it were any other process.  
+First clone this repo and from within, by executing the kai command line and uploading the source code, example:
+
+```sh
+kli process-registry register trigger github-trigger --dockerfile ./github-webhook-trigger/Dockerfile --product demo --src ./github-webhook-trigger --version v1.0.0
+```
 
 This will upload the image to a local registry, and will be available to the KAI services.
+
+
+## Unpacking proto any to structpb in a process
+
+Given a structpb being defined as:
+
+``` go
+m, err := structpb.NewValue(map[string]interface{}{
+    "param1": "example"
+})
+```
+
+which we sent using the sdk with `s.kaiSDK.Messaging.SendOutputWithRequestID(m, reqID)`
+or we just got from another third party service, we need first to create the struct to fill with
+the given data and then unpack the value to it, which then we can use or transform to another types like JSON:
+
+``` go
+var respData struct {
+    Param1 string `json:"param1"`
+}
+
+responsePb := new(structpb.Value)
+err := response.UnmarshalTo(responsePb)
+responsePbJSON, err := responsePb.MarshalJSON()
+err = json.Unmarshal(responsePbJSON, &respData)
+param1 := respData.Param1
+```
+
+``` python
+    input_proto = Struct()
+    response.Unpack(input_proto)
+
+    param1 = input_proto.fields["param1"].string_value
+```
+

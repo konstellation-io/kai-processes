@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package grpctrigger;
+
+option go_package = "./proto";
+
+message Request {
+  string param1 = 1;
+  string param2 = 2;
+  string param3 = 3;
+}
+
+message Response {
+  string status_code = 1;
+  string message = 2;
+}
+
+service GRPCTrigger {
+  rpc Trigger (Request) returns (Response) {}
+}

@@ -1,4 +1,4 @@
-module github.com/konstellation-io/kai-processes/github-webhook-trigger
+module github.com/konstellation-io/kai-processes/gitlab-webhook-trigger
 
 go 1.20
 

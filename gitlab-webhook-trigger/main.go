@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/konstellation-io/kai-processes/github-webhook-trigger/internal/webhook"
+	"github.com/konstellation-io/kai-processes/gitlab-webhook-trigger/internal/webhook"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
@@ -26,7 +26,7 @@ func runnerFunc(wh webhook.Webhook) func(tr *trigger.Runner, kaiSDK sdk.KaiSDK) 
 }
 
 func main() {
-	wh := webhook.NewGithubWebhook()
+	wh := webhook.NewGitlabWebhook()
 
 	r := runner.NewRunner().
 		TriggerRunner().

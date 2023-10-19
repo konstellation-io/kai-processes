@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-playground/webhooks/v6/github"
+	"github.com/go-playground/webhooks/v6/gitlab"
 	"github.com/google/uuid"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	centralizedconfiguration "github.com/konstellation-io/kai-sdk/go-sdk/sdk/centralized-configuration"
@@ -19,15 +19,14 @@ import (
 )
 
 const (
-	path = "/webhook-github"
+	path = "/webhook-gitlab"
 )
 
 const (
-	PullRequestEvent      = "pull_request"
-	PushEvent             = "push"
-	ReleaseEvent          = "release"
-	WorkflowDispatchEvent = "workflow_dispatch"
-	WorkflowRunEvent      = "workflow_run"
+	PushEvent         = "push"
+	MergeRequestEvent = "merge_request"
+	CommentEvent      = "comment"
+	TagEvent          = "tag"
 )
 
 //go:generate mockery --name Webhook --output ../mocks --filename webhook_mock.go --structname WebhookMock
@@ -35,35 +34,35 @@ type Webhook interface {
 	InitWebhook(kaiSDK sdk.KaiSDK) error
 }
 
-type GithubWebhook struct {
+type GitlabWebhook struct {
 }
 
-func NewGithubWebhook() Webhook {
-	return &GithubWebhook{}
+func NewGitlabWebhook() Webhook {
+	return &GitlabWebhook{}
 }
 
-func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
-	eventConfig, githubSecret, err := getConfig(kaiSDK)
+func (gw *GitlabWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
+	eventConfig, gitlabSecret, err := getConfig(kaiSDK)
 	if err != nil {
 		return err
 	}
 
-	githubEvents, err := getEventsFromConfig(eventConfig)
+	gitlabEvents, err := getEventsFromConfig(eventConfig)
 	if err != nil {
 		return GettingEventsFromConfigError(err)
 	}
 
-	options := make([]github.Option, 0, 1)
-	if githubSecret != "" {
-		options = append(options, github.Options.Secret(githubSecret))
+	options := make([]gitlab.Option, 0, 1)
+	if gitlabSecret != "" {
+		options = append(options, gitlab.Options.Secret(gitlabSecret))
 	}
 
-	parser, err := github.New(options...)
+	parser, err := gitlab.New(options...)
 	if err != nil {
 		return CreatingWebhookError(err)
 	}
 
-	http.HandleFunc(path, handleEventRequest(parser, githubEvents, kaiSDK))
+	http.HandleFunc(path, handleEventRequest(parser, gitlabEvents, kaiSDK))
 
 	srv := &http.Server{
 		Addr:              ":3000",
@@ -96,43 +95,41 @@ func (gw *GithubWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 	return nil
 }
 
-func getConfig(kaiSDK sdk.KaiSDK) (webhookEvents, githubSecret string, err error) {
+func getConfig(kaiSDK sdk.KaiSDK) (webhookEvents, gitlabSecret string, err error) {
 	webhookEvents, err = kaiSDK.CentralizedConfig.GetConfig("webhook_events", messaging.ProcessScope)
 	if err != nil {
 		return "", "", err
 	}
 
-	githubSecret, err = kaiSDK.CentralizedConfig.GetConfig("github_secret", messaging.ProcessScope)
+	gitlabSecret, err = kaiSDK.CentralizedConfig.GetConfig("gitlab_secret", messaging.ProcessScope)
 	if err != nil && !errors.Is(err, centralizedconfiguration.ErrKeyNotFound) {
 		return "", "", err
 	}
 
-	return webhookEvents, githubSecret, nil
+	return webhookEvents, gitlabSecret, nil
 }
 
 func handleEventRequest(
-	parser *github.Webhook,
-	githubEvents []github.Event,
+	parser *gitlab.Webhook,
+	gitlabEvents []gitlab.Event,
 	kaiSDK sdk.KaiSDK,
 ) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		payload, err := parser.Parse(r, githubEvents...)
-		if err != nil && !errors.Is(err, github.ErrEventNotFound) {
+		payload, err := parser.Parse(r, gitlabEvents...)
+		if err != nil && !errors.Is(err, gitlab.ErrEventNotFound) {
 			kaiSDK.Logger.Error(err, "Error parsing webhook")
 			return
 		}
 
 		switch payload := payload.(type) {
-		case github.PullRequestPayload:
-			err = triggerPipeline(payload.PullRequest.URL, PullRequestEvent, kaiSDK)
-		case github.PushPayload:
-			err = triggerPipeline(payload.Repository.URL, PushEvent, kaiSDK)
-		case github.ReleasePayload:
-			err = triggerPipeline(payload.Repository.URL, ReleaseEvent, kaiSDK)
-		case github.WorkflowDispatchPayload:
-			err = triggerPipeline(payload.Repository.URL, WorkflowDispatchEvent, kaiSDK)
-		case github.WorkflowRunPayload:
-			err = triggerPipeline(payload.Repository.URL, WorkflowRunEvent, kaiSDK)
+		case gitlab.PushEventPayload:
+			err = triggerPipeline(payload.Repository.URL, string(gitlab.PushEvents), kaiSDK)
+		case gitlab.MergeRequestEventPayload:
+			err = triggerPipeline(payload.Repository.URL, string(gitlab.MergeRequestEvents), kaiSDK)
+		case gitlab.CommentEventPayload:
+			err = triggerPipeline(payload.Repository.URL, string(gitlab.CommentEvents), kaiSDK)
+		case gitlab.TagEventPayload:
+			err = triggerPipeline(payload.Repository.URL, string(gitlab.TagEvents), kaiSDK)
 		default:
 			err = ErrEventNotSupported
 		}
@@ -144,28 +141,26 @@ func handleEventRequest(
 	}
 }
 
-func getEventsFromConfig(eventConfig string) ([]github.Event, error) {
+func getEventsFromConfig(eventConfig string) ([]gitlab.Event, error) {
 	events := strings.Split(strings.ReplaceAll(eventConfig, " ", ""), ",")
-	totalEvents := map[string]github.Event{} // use map to avoid duplicates
+	totalEvents := map[string]gitlab.Event{} // use map to avoid duplicates
 
 	for _, event := range events {
 		switch event {
-		case PullRequestEvent:
-			totalEvents[event] = github.PullRequestEvent
 		case PushEvent:
-			totalEvents[event] = github.PushEvent
-		case ReleaseEvent:
-			totalEvents[event] = github.ReleaseEvent
-		case WorkflowDispatchEvent:
-			totalEvents[event] = github.WorkflowDispatchEvent
-		case WorkflowRunEvent:
-			totalEvents[event] = github.WorkflowRunEvent
+			totalEvents[event] = gitlab.PushEvents
+		case MergeRequestEvent:
+			totalEvents[event] = gitlab.MergeRequestEvents
+		case CommentEvent:
+			totalEvents[event] = gitlab.CommentEvents
+		case TagEvent:
+			totalEvents[event] = gitlab.TagEvents
 		default:
 			return nil, NotValidEventError(event)
 		}
 	}
 
-	totalEventsSlice := []github.Event{}
+	totalEventsSlice := []gitlab.Event{}
 	for _, event := range totalEvents {
 		totalEventsSlice = append(totalEventsSlice, event)
 	}
@@ -175,7 +170,7 @@ func getEventsFromConfig(eventConfig string) ([]github.Event, error) {
 
 func triggerPipeline(eventURL, event string, kaiSDK sdk.KaiSDK) error {
 	requestID := uuid.New().String()
-	kaiSDK.Logger.Info("Github webhook triggered, new message sent", "requestID", requestID)
+	kaiSDK.Logger.Info("Gitlab webhook triggered, new message sent", "requestID", requestID)
 
 	m, err := structpb.NewValue(map[string]interface{}{
 		"eventUrl": eventURL,

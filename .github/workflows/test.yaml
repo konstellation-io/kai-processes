@@ -9,6 +9,8 @@ on:
   pull_request:
     paths:
       - 'github-webhook-trigger/**/*'
+      - 'gitlab-webhook-trigger/**/*'
+      - 'cronjob-trigger/**/*'
       - '.github/workflows/test.yaml'
     branches:
       # Destination branches
@@ -20,9 +22,11 @@ jobs:
     name: Check folder changes
     outputs:
       github-webhook-trigger: ${{ steps.filter.outputs.github-webhook-trigger }}
+      gitlab-webhook-trigger: ${{ steps.filter.outputs.gitlab-webhook-trigger }}
+      cronjob-trigger: ${{ steps.filter.outputs.cronjob-trigger }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - uses: dorny/paths-filter@v2
       id: filter
@@ -30,6 +34,12 @@ jobs:
         filters: |
           github-webhook-trigger:
             - 'github-webhook-trigger/**/*'
+            - '.github/workflows/test.yaml'
+          gitlab-webhook-trigger:
+            - 'gitlab-webhook-trigger/**/*'
+            - '.github/workflows/test.yaml'
+          cronjob-trigger:
+            - 'cronjob-trigger/**/*'
             - '.github/workflows/test.yaml'
 
   unit-tests:
@@ -42,10 +52,14 @@ jobs:
         include:
           - component: github-webhook-trigger
             changes: ${{ needs.check-folder-changes.outputs.github-webhook-trigger }}
+          - component: gitlab-webhook-trigger
+            changes: ${{ needs.check-folder-changes.outputs.gitlab-webhook-trigger }}
+          - component: cronjob-trigger
+            changes: ${{ needs.check-folder-changes.outputs.cronjob-trigger }}
     steps:
       - name: Checkout code
         if: matrix.changes == 'true'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Go
         if: matrix.changes == 'true'
         uses: actions/setup-go@v4
@@ -87,9 +101,15 @@ jobs:
         include:
           - component: github-webhook-trigger
             changes: ${{ needs.check-folder-changes.outputs.github-webhook-trigger }}
-            sonar_token_secret: SONAR_TOKEN
+            sonar_token_secret: GITH_SONAR_TOKEN
+          - component: gitlab-webhook-trigger
+            changes: ${{ needs.check-folder-changes.outputs.gitlab-webhook-trigger }}
+            sonar_token_secret: GITLAB_SONAR_TOKEN
+          - component: cronjob-trigger
+            changes: ${{ needs.check-folder-changes.outputs.cronjob-trigger }}
+            sonar_token_secret: CRONJOB_SONAR_TOKEN  
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         if: matrix.changes == 'true'
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis

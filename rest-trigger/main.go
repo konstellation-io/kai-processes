@@ -40,7 +40,12 @@ func restServerRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	defer stop()
 
 	r := gin.Default()
-	r.POST("/trigger", responseHandler(kaiSDK, tr.GetResponseChannel))
+	path := "/trigger"
+	r.GET(path, getHandler(kaiSDK, tr.GetResponseChannel))
+	r.POST(path, postHandler(kaiSDK, tr.GetResponseChannel))
+	r.PUT(path, putHandler(kaiSDK, tr.GetResponseChannel))
+	r.DELETE(path, deleteHandler(kaiSDK, tr.GetResponseChannel))
+
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: r,
@@ -67,38 +72,48 @@ func restServerRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Server stopped")
 }
 
-func responseHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string) <-chan *anypb.Any) func(c *gin.Context) {
+func postHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string) <-chan *anypb.Any) func(c *gin.Context) {
+	return responseHandler(kaiSDK, getResponseChannel, "POST")
+}
+
+func putHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string) <-chan *anypb.Any) func(c *gin.Context) {
+	return responseHandler(kaiSDK, getResponseChannel, "PUT")
+}
+
+func getHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string) <-chan *anypb.Any) func(c *gin.Context) {
+	return responseHandler(kaiSDK, getResponseChannel, "GET")
+}
+
+func deleteHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string) <-chan *anypb.Any) func(c *gin.Context) {
+	return responseHandler(kaiSDK, getResponseChannel, "DELETE")
+}
+
+func responseHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string) <-chan *anypb.Any, restMethod string) func(c *gin.Context) {
 	return func(c *gin.Context) {
 
 		reqID := uuid.New().String()
 		kaiSDK.Logger.Info("REST triggered, sending message", "requestID", reqID)
 
-		// jsonData, err := io.ReadAll(c.Request.Body)
-		// if err != nil {
-		// 	kaiSDK.Logger.Error(err, "Error reading request body")
-		// 	return
-		// }
+		var m *structpb.Value
+		var err error
 
-		var requestData struct {
-			Param1 string `json:"param1"`
-			Param2 string `json:"param2"`
-			Param3 string `json:"param3"`
-		}
-
-		err := c.ShouldBindJSON(&requestData)
-		if err != nil {
-			kaiSDK.Logger.Error(err, "Error binding request body")
-			return
-		}
-
-		m, err := structpb.NewValue(map[string]interface{}{
-			"param1": requestData.Param1,
-			"param2": requestData.Param2,
-			"param3": requestData.Param3,
-		})
-		if err != nil {
-			kaiSDK.Logger.Error(err, "error creating response")
-			return
+		if restMethod == "POST" || restMethod == "PUT" {
+			m, err = structpb.NewValue(map[string]interface{}{
+				"method": restMethod,
+				"body":   c.Request.Body,
+			})
+			if err != nil {
+				kaiSDK.Logger.Error(err, "error creating response")
+				return
+			}
+		} else {
+			m, err = structpb.NewValue(map[string]interface{}{
+				"method": restMethod,
+			})
+			if err != nil {
+				kaiSDK.Logger.Error(err, "error creating response")
+				return
+			}
 		}
 
 		err = kaiSDK.Messaging.SendOutputWithRequestID(m, reqID)

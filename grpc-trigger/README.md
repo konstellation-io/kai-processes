@@ -1,7 +1,7 @@
 # GRPC trigger
 
 The GRPC webhook trigger is a predefined KAI process that creates a GRPC server instance.  
-It will stay listening for client request through port 8080.  
+It will stay listening for client requests through port 8080.  
 
 ## How to setup
 

@@ -49,7 +49,10 @@ func (s *MainSuite) TestInitializer() {
 }
 
 func (s *MainSuite) TestProcessRunnerFunc() {
-	s.centralizedConfigMock.On("GetConfig", "process", messaging.ProcessScope).Return("subject", nil)
+	s.centralizedConfigMock.On("GetConfig", "product").Return("product", nil)
+	s.centralizedConfigMock.On("GetConfig", "version").Return("version", nil)
+	s.centralizedConfigMock.On("GetConfig", "workflow").Return("workflow", nil)
+	s.centralizedConfigMock.On("GetConfig", "process").Return("process", nil)
 	s.centralizedConfigMock.On("GetConfig", "retainExecutionId", messaging.ProcessScope).Return("true", nil)
 	s.messagingMock.On("SendOutputWithRequestID", mock.Anything, mock.Anything).Return(nil)
 

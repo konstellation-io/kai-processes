@@ -24,12 +24,12 @@ func main() {
 	runner.
 		NewRunner().
 		TriggerRunner().
-		WithInitializer(func(ctx sdk.KaiSDK) {
-			ctx.Logger.Info("Initializer")
+		WithInitializer(func(kaiSDK sdk.KaiSDK) {
+			kaiSDK.Logger.Info("Initializer")
 		}).
 		WithRunner(restServerRunner).
-		WithFinalizer(func(ctx sdk.KaiSDK) {
-			ctx.Logger.Info("Finalizer")
+		WithFinalizer(func(kaiSDK sdk.KaiSDK) {
+			kaiSDK.Logger.Info("Finalizer")
 		}).
 		Run()
 }

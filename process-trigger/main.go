@@ -21,7 +21,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Starting nats subscriber")
 	process, _ := kaiSDK.CentralizedConfig.GetConfig("process")
-	// retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
+	retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
 
 	nc, _ := nats.Connect("nats://localhost:4222")
 	js, err := nc.JetStream()
@@ -38,6 +38,9 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 			}
 
 			requestID := uuid.New().String()
+			if retainExecutionId == "true" {
+				requestID = kaiSDK.GetRequestID()
+			}
 			responseChannel := tr.GetResponseChannel(requestID)
 
 			err = kaiSDK.Messaging.SendOutputWithRequestID(val, requestID)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"os/signal"
 	"strconv"
@@ -98,9 +99,15 @@ func responseHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string
 		var err error
 
 		if restMethod == "POST" || restMethod == "PUT" {
+			jsonData, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				kaiSDK.Logger.Error(err, "error reading body")
+				return
+			}
+
 			m, err = structpb.NewValue(map[string]interface{}{
 				"method": restMethod,
-				"body":   c.Request.Body,
+				"body":   jsonData,
 			})
 			if err != nil {
 				kaiSDK.Logger.Error(err, "error creating response")

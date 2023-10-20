@@ -21,7 +21,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 }
 
 func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Starting process subscriber runner")
+	kaiSDK.Logger.Info("Starting process subscriber")
 
 	product, _ := kaiSDK.CentralizedConfig.GetConfig("product")
 	version, _ := kaiSDK.CentralizedConfig.GetConfig("version")
@@ -45,7 +45,6 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		panic(err)
 	}
 
-	kaiSDK.Logger.Info("Subscribing to stream", "stream", streamName, "consumer", consumerName)
 	s, err := js.QueueSubscribe(
 		streamName,
 		consumerName,
@@ -103,5 +102,8 @@ func main() {
 		TriggerRunner().
 		WithInitializer(initializer).
 		WithRunner(processSubscriberRunner).
+		WithFinalizer(func(kaiSDK sdk.KaiSDK) {
+			kaiSDK.Logger.Info("Finishing process trigger")
+		}).
 		Run()
 }

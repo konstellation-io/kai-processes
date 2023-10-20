@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,19 +17,24 @@ import (
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Initializing process")
+	kaiSDK.Logger.Info("Initializing process trigger")
 }
 
-func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Starting process runner")
+func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
+	kaiSDK.Logger.Info("Starting process subscriber runner")
+
 	product, _ := kaiSDK.CentralizedConfig.GetConfig("product")
 	version, _ := kaiSDK.CentralizedConfig.GetConfig("version")
 	workflow, _ := kaiSDK.CentralizedConfig.GetConfig("workflow")
 	process, _ := kaiSDK.CentralizedConfig.GetConfig("process")
 	productID := kaiSDK.Metadata.GetProduct()
+	productID = strings.ReplaceAll(strings.ToLower(productID), " ", "_")
 	versionID := kaiSDK.Metadata.GetVersion()
+	versionID = strings.ReplaceAll(strings.ToLower(versionID), " ", "_")
 	workflowID := kaiSDK.Metadata.GetWorkflow()
+	workflowID = strings.ReplaceAll(strings.ToLower(workflowID), " ", "_")
 	processID := kaiSDK.Metadata.GetProcess()
+	processID = strings.ReplaceAll(strings.ToLower(processID), " ", "_")
 	streamName := fmt.Sprintf("%s_%s_%s.%s", product, version, workflow, process)
 	consumerName := fmt.Sprintf("%s_%s_%s_%s", productID, versionID, workflowID, processID)
 	retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
@@ -39,14 +45,17 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		panic(err)
 	}
 
+	kaiSDK.Logger.Info("Subscribing to stream", "stream", streamName, "consumer", consumerName)
 	s, err := js.QueueSubscribe(
 		streamName,
 		consumerName,
 		func(msg *nats.Msg) {
 			requestID := uuid.New().String()
+
 			if retainExecutionId == "true" {
 				requestID = kaiSDK.GetRequestID()
 			}
+
 			responseChannel := tr.GetResponseChannel(requestID)
 
 			val := &wrappers.StringValue{
@@ -61,6 +70,7 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 
 			// Wait for the response before ACKing the message
 			<-responseChannel
+
 			kaiSDK.Logger.Info("Message received, acking message")
 
 			err = msg.Ack()
@@ -88,10 +98,10 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 }
 
 func main() {
-	r := runner.NewRunner().
+	runner.
+		NewRunner().
 		TriggerRunner().
 		WithInitializer(initializer).
-		WithRunner(processRunner)
-
-	r.Run()
+		WithRunner(processSubscriberRunner).
+		Run()
 }

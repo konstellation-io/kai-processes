@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,8 +20,17 @@ func initializer(kaiSDK sdk.KaiSDK) {
 }
 
 func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Starting nats subscriber")
+	kaiSDK.Logger.Info("Starting process runner")
+	product, _ := kaiSDK.CentralizedConfig.GetConfig("product")
+	version, _ := kaiSDK.CentralizedConfig.GetConfig("version")
+	workflow, _ := kaiSDK.CentralizedConfig.GetConfig("workflow")
 	process, _ := kaiSDK.CentralizedConfig.GetConfig("process")
+	productID := kaiSDK.Metadata.GetProduct()
+	versionID := kaiSDK.Metadata.GetVersion()
+	workflowID := kaiSDK.Metadata.GetWorkflow()
+	processID := kaiSDK.Metadata.GetProcess()
+	streamName := fmt.Sprintf("%s_%s_%s.%s", product, version, workflow, process)
+	consumerName := fmt.Sprintf("%s_%s_%s_%s", productID, versionID, workflowID, processID)
 	retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
 
 	nc, _ := nats.Connect("nats://localhost:4222")
@@ -30,18 +40,18 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	}
 
 	s, err := js.QueueSubscribe(
-		process,
-		"nats-trigger-queue",
+		streamName,
+		consumerName,
 		func(msg *nats.Msg) {
-			val := &wrappers.StringValue{
-				Value: "Hi there, I'm a NATS subscriber!",
-			}
-
 			requestID := uuid.New().String()
 			if retainExecutionId == "true" {
 				requestID = kaiSDK.GetRequestID()
 			}
 			responseChannel := tr.GetResponseChannel(requestID)
+
+			val := &wrappers.StringValue{
+				Value: string(msg.Data),
+			}
 
 			err = kaiSDK.Messaging.SendOutputWithRequestID(val, requestID)
 			if err != nil {
@@ -51,7 +61,6 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 
 			// Wait for the response before ACKing the message
 			<-responseChannel
-
 			kaiSDK.Logger.Info("Message received, acking message")
 
 			err = msg.Ack()
@@ -61,7 +70,7 @@ func processRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 			}
 		},
 		nats.DeliverNew(),
-		nats.Durable("nats-trigger"),
+		nats.Durable(consumerName),
 		nats.ManualAck(),
 		nats.AckWait(22*time.Hour),
 	)

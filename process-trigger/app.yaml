@@ -20,5 +20,8 @@ centralized_configuration:
   process:
     bucket: process
     config:
+      product: product
+      version: version
+      workflow: workflow
       process: process
       retain-execution-id: true

@@ -29,14 +29,18 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	process, _ := kaiSDK.CentralizedConfig.GetConfig("process")
 	productID := kaiSDK.Metadata.GetProduct()
 	productID = strings.ReplaceAll(strings.ToLower(productID), " ", "_")
+	productID = strings.ReplaceAll(productID, ".", "_")
 	versionID := kaiSDK.Metadata.GetVersion()
 	versionID = strings.ReplaceAll(strings.ToLower(versionID), " ", "_")
+	versionID = strings.ReplaceAll(versionID, ".", "_")
 	workflowID := kaiSDK.Metadata.GetWorkflow()
 	workflowID = strings.ReplaceAll(strings.ToLower(workflowID), " ", "_")
+	workflowID = strings.ReplaceAll(workflowID, ".", "_")
 	processID := kaiSDK.Metadata.GetProcess()
 	processID = strings.ReplaceAll(strings.ToLower(processID), " ", "_")
-	streamName := fmt.Sprintf("%s_%s_%s.%s", product, version, workflow, process)
-	consumerName := fmt.Sprintf("%s_%s_%s_%s", productID, versionID, workflowID, processID)
+	processID = strings.ReplaceAll(processID, ".", "_")
+	subjectName := fmt.Sprintf("%s_%s_%s.%s", product, version, workflow, process)
+	queueName := fmt.Sprintf("%s_%s_%s_%s", productID, versionID, workflowID, processID)
 	retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
 
 	nc, _ := nats.Connect("nats://localhost:4222")
@@ -46,9 +50,10 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	}
 
 	s, err := js.QueueSubscribe(
-		streamName,
-		consumerName,
+		subjectName,
+		queueName,
 		func(msg *nats.Msg) {
+			kaiSDK.Logger.Info("Message received", "subject", subjectName, "queue", queueName)
 			requestID := uuid.New().String()
 
 			if retainExecutionId == "true" {
@@ -79,10 +84,12 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 			}
 		},
 		nats.DeliverNew(),
-		nats.Durable(consumerName),
+		nats.Durable(queueName),
 		nats.ManualAck(),
 		nats.AckWait(22*time.Hour),
 	)
+
+	kaiSDK.Logger.Info("Listening to subject", "subject", subjectName, "queue", queueName)
 
 	// Handle sigterm and await termChan signal
 	termChan := make(chan os.Signal, 1)

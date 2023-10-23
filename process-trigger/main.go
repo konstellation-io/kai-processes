@@ -54,10 +54,15 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		queueName,
 		func(msg *nats.Msg) {
 			kaiSDK.Logger.Info("Message received", "subject", subjectName, "queue", queueName)
-			requestID := uuid.New().String()
+			requestMsg, err := kaiSDK.Messaging.UnmarshallMessage(msg.Data)
+			if err != nil {
+				kaiSDK.Logger.Error(err, "Error creating request message")
+				return
+			}
 
+			requestID := uuid.New().String()
 			if retainExecutionId == "true" {
-				requestID = kaiSDK.GetRequestID()
+				requestID = requestMsg.RequestId
 			}
 
 			responseChannel := tr.GetResponseChannel(requestID)

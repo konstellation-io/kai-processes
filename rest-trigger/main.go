@@ -95,32 +95,10 @@ func responseHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string
 		reqID := uuid.New().String()
 		kaiSDK.Logger.Info("REST triggered, sending message", "requestID", reqID)
 
-		var m *structpb.Value
-		var err error
-
-		if restMethod == "POST" || restMethod == "PUT" {
-			jsonData, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				kaiSDK.Logger.Error(err, "error reading body")
-				return
-			}
-
-			m, err = structpb.NewValue(map[string]interface{}{
-				"method": restMethod,
-				"body":   jsonData,
-			})
-			if err != nil {
-				kaiSDK.Logger.Error(err, "error creating response")
-				return
-			}
-		} else {
-			m, err = structpb.NewValue(map[string]interface{}{
-				"method": restMethod,
-			})
-			if err != nil {
-				kaiSDK.Logger.Error(err, "error creating response")
-				return
-			}
+		m, err := prepareMessageOutput(restMethod, c.Request.Body)
+		if err != nil {
+			kaiSDK.Logger.Error(err, "error preparing message output")
+			return
 		}
 
 		err = kaiSDK.Messaging.SendOutputWithRequestID(m, reqID)
@@ -134,40 +112,73 @@ func responseHandler(kaiSDK sdk.KaiSDK, getResponseChannel func(requestID string
 
 		kaiSDK.Logger.Info("response recieved", "response", response)
 
-		var respData struct {
-			StatusCode string `json:"status_code"`
-			Message    string `json:"message"`
-		}
-
-		responsePb := new(structpb.Value)
-		if err := response.UnmarshalTo(responsePb); err != nil {
-			kaiSDK.Logger.Error(err, "error while creating Value from Any")
-			return
-		}
-		response.UnmarshalTo(responsePb)
-
-		responsePbJSON, err := responsePb.MarshalJSON()
-		if err != nil {
-			kaiSDK.Logger.Error(err, "error marshalling response")
-			return
-		}
-
-		kaiSDK.Logger.Info("json bytes", "json", string(responsePbJSON))
-
-		err = json.Unmarshal(responsePbJSON, &respData)
+		httpCode, respessage, err := unmarshalResponse(response)
 		if err != nil {
 			kaiSDK.Logger.Error(err, "error unmarshalling response")
 			return
 		}
 
-		httpCode, err := strconv.Atoi(respData.StatusCode)
-		if err != nil {
-			kaiSDK.Logger.Error(err, "error converting status code to int")
-			return
-		}
-
 		c.JSON(httpCode, gin.H{
-			"message": respData.Message,
+			"message": respessage,
 		})
 	}
+}
+
+func unmarshalResponse(response *anypb.Any) (int, string, error) {
+	var respData struct {
+		StatusCode string `json:"status_code"`
+		Message    string `json:"message"`
+	}
+
+	responsePb := new(structpb.Value)
+	if err := response.UnmarshalTo(responsePb); err != nil {
+		return 0, "", err
+	}
+	response.UnmarshalTo(responsePb)
+
+	responsePbJSON, err := responsePb.MarshalJSON()
+	if err != nil {
+		return 0, "", err
+	}
+
+	err = json.Unmarshal(responsePbJSON, &respData)
+	if err != nil {
+		return 0, "", err
+	}
+
+	httpCode, err := strconv.Atoi(respData.StatusCode)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return httpCode, respData.Message, nil
+}
+
+func prepareMessageOutput(restMethod string, body io.ReadCloser) (*structpb.Value, error) {
+	var m *structpb.Value
+	var err error
+
+	if restMethod == "POST" || restMethod == "PUT" {
+		jsonData, err := io.ReadAll(body)
+		if err != nil {
+			return nil, err
+		}
+
+		m, err = structpb.NewValue(map[string]interface{}{
+			"method": restMethod,
+			"body":   jsonData,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		m, err = structpb.NewValue(map[string]interface{}{
+			"method": restMethod,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return m, nil
 }

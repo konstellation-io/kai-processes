@@ -15,10 +15,10 @@ Both output and input messages towards this process require the usage of specifi
 
 ### Trigger's Output (JSON)
 
-| Key       | Type    | Value                                                                  |
-|-----------|---------|------------------------------------------------------------------------|
-| method    | str     | The REST method used                                                   |
-| body      | []byte  | Optional. For POST and PUT methods the body is redirected              |
+| Key       | Type    | Value                                                                                     |
+|-----------|---------|-------------------------------------------------------------------------------------------|
+| method    | str     | The REST method used                                                                      |
+| body      | []byte  | Optional. For POST and PUT methods the body is taken from the request's body              |
 
 #### Trigger's Output Example
 

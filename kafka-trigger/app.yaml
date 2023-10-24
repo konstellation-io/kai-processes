@@ -1,0 +1,26 @@
+metadata:
+  product_id: Kafka trigger product
+  workflow_id: Kafka trigger workflow
+  process_id: Kafka trigger process
+  version_id: Kafka trigger version v1.0.0
+  base_path: '/Some/Path'
+
+nats:
+  url: 'nats://localhost:4222'
+  stream: kafka-trigger
+  output: kafka-trigger-output
+
+centralized_configuration:
+  global:
+    bucket: global
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process
+    config:
+      brokers: 'localhost:9092, localhost:9093, localhost:9094'
+      groupID: 'kafka-group-id'
+      topic: 'topic-A'
+      partition: 0

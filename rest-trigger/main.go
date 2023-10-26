@@ -16,22 +16,25 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+var path = "/trigger"
 
 func main() {
 	runner.
 		NewRunner().
 		TriggerRunner().
-		WithInitializer(func(kaiSDK sdk.KaiSDK) {
-			kaiSDK.Logger.Info("Initializer")
-		}).
+		WithInitializer(restInitializer).
 		WithRunner(restServerRunner).
-		WithFinalizer(func(kaiSDK sdk.KaiSDK) {
-			kaiSDK.Logger.Info("Finalizer")
-		}).
 		Run()
+}
+
+func restInitializer(kaiSDK sdk.KaiSDK) {
+	kaiSDK.Logger.Info("Initializer, loading config")
+	path, _ = kaiSDK.CentralizedConfig.GetConfig("path", messaging.ProcessScope)
 }
 
 func restServerRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
@@ -41,7 +44,6 @@ func restServerRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	defer stop()
 
 	r := gin.Default()
-	path := "/trigger"
 	r.GET(path, getHandler(kaiSDK, tr.GetResponseChannel))
 	r.POST(path, postHandler(kaiSDK, tr.GetResponseChannel))
 	r.PUT(path, putHandler(kaiSDK, tr.GetResponseChannel))

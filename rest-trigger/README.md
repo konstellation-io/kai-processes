@@ -5,13 +5,31 @@ It will stay listening for client requests through port 8080.
 
 ## How to setup
 
-There is no required configuration in your version file to use this process.
+There is an optional "path" configuration for users to specify the path in which the REST service will be deployed.
+If no "path" is setup, the trigger will be in the default "trigger" path.
 
-However, processes communicating with this trigger must be prepared to do so. Processes listening to
+Processes communicating with this trigger must be prepared to do so. Processes listening to
 the REST trigger need to unmmarshal protobuf based JSON messages, and processes sending messages to
 the trigger need to marshal protobuf based JSON messages.
 
 Both output and input messages towards this process require the usage of specific keys in the JSON.
+
+### Configuration
+
+The configuration should be defined inside the `centralized configuration scope`:
+
+| Key       | Optional  | Type | Value                                                                                         |
+|-----------|-----------|------|----------------------------------------------------------------|
+| path      | yes       | str  | Where the REST service will be deployed ("trigger" by default).     |
+
+#### Configuration Example
+
+```yaml
+centralized_configuration:
+  process:
+    config:
+      path: 'mypath'
+```
 
 ### Trigger's Output (JSON)
 

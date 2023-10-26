@@ -14,6 +14,7 @@ import (
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
 	"github.com/nats-io/nats.go"
+	"github.com/spf13/viper"
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {
@@ -23,10 +24,10 @@ func initializer(kaiSDK sdk.KaiSDK) {
 func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Starting process subscriber")
 
-	product, _ := kaiSDK.CentralizedConfig.GetConfig("product")
-	version, _ := kaiSDK.CentralizedConfig.GetConfig("version")
-	workflow, _ := kaiSDK.CentralizedConfig.GetConfig("workflow")
-	process, _ := kaiSDK.CentralizedConfig.GetConfig("process")
+	targetProduct, _ := kaiSDK.CentralizedConfig.GetConfig("product")
+	targetVersion, _ := kaiSDK.CentralizedConfig.GetConfig("version")
+	targetWorkflow, _ := kaiSDK.CentralizedConfig.GetConfig("workflow")
+	targetProcess, _ := kaiSDK.CentralizedConfig.GetConfig("process")
 	productID := kaiSDK.Metadata.GetProduct()
 	productID = strings.ReplaceAll(strings.ToLower(productID), " ", "_")
 	productID = strings.ReplaceAll(productID, ".", "_")
@@ -39,11 +40,11 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	processID := kaiSDK.Metadata.GetProcess()
 	processID = strings.ReplaceAll(strings.ToLower(processID), " ", "_")
 	processID = strings.ReplaceAll(processID, ".", "_")
-	subjectName := fmt.Sprintf("%s_%s_%s.%s", product, version, workflow, process)
+	subjectName := fmt.Sprintf("%s_%s_%s.%s", targetProduct, targetVersion, targetWorkflow, targetProcess)
 	queueName := fmt.Sprintf("%s_%s_%s_%s", productID, versionID, workflowID, processID)
 	retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
 
-	nc, _ := nats.Connect("nats://localhost:4222")
+	nc, _ := nats.Connect(viper.GetString("nats.url"))
 	js, err := nc.JetStream()
 	if err != nil {
 		panic(err)
@@ -54,7 +55,7 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		queueName,
 		func(msg *nats.Msg) {
 			kaiSDK.Logger.Info("Message received", "subject", subjectName, "queue", queueName)
-			requestMsg, err := kaiSDK.Messaging.UnmarshallMessage(msg.Data)
+			requestMsg, err := kaiSDK.Messaging.GetRequestID(msg)
 			if err != nil {
 				kaiSDK.Logger.Error(err, "Error creating request message")
 				return

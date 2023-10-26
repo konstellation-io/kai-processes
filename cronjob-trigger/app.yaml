@@ -1,8 +1,8 @@
 metadata:
   product_id: Cronjob trigger product
-  workflow_id: Cronjob trigger workflow
-  process_id: Cronjob trigger process
-  version_id: Cronjob trigger version v1.0.0
+  workflow_name: Cronjob trigger workflow
+  process_name: Cronjob trigger process
+  version_tag: Cronjob trigger version v1.0.0
   base_path: '/Some/Path'
 
 nats:

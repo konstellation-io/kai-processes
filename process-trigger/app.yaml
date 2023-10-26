@@ -1,8 +1,8 @@
 metadata:
   product_id: Process trigger product
-  workflow_id: Process trigger workflow
-  process_id: Process trigger process
-  version_id: Process trigger version v1.0.0
+  workflow_name: Process trigger workflow
+  process_name: Process trigger process
+  version_tag: Process trigger version v1.0.0
   base_path: '/Some/Path'
 
 nats:

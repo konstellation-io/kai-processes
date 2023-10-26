@@ -17,6 +17,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const ACK_WAIT = 22 * time.Hour
+
 func initializer(kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Initializing process trigger")
 }
@@ -28,6 +30,9 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	targetVersion, _ := kaiSDK.CentralizedConfig.GetConfig("version")
 	targetWorkflow, _ := kaiSDK.CentralizedConfig.GetConfig("workflow")
 	targetProcess, _ := kaiSDK.CentralizedConfig.GetConfig("process")
+
+	subjectName := fmt.Sprintf("%s_%s_%s.%s", targetProduct, targetVersion, targetWorkflow, targetProcess)
+	
 	productID := kaiSDK.Metadata.GetProduct()
 	productID = strings.ReplaceAll(strings.ToLower(productID), " ", "_")
 	productID = strings.ReplaceAll(productID, ".", "_")
@@ -40,8 +45,9 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	processID := kaiSDK.Metadata.GetProcess()
 	processID = strings.ReplaceAll(strings.ToLower(processID), " ", "_")
 	processID = strings.ReplaceAll(processID, ".", "_")
-	subjectName := fmt.Sprintf("%s_%s_%s.%s", targetProduct, targetVersion, targetWorkflow, targetProcess)
+	
 	queueName := fmt.Sprintf("%s_%s_%s_%s", productID, versionID, workflowID, processID)
+	
 	retainExecutionId, _ := kaiSDK.CentralizedConfig.GetConfig("retain-execution-id")
 
 	nc, _ := nats.Connect(viper.GetString("nats.url"))
@@ -91,7 +97,7 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		nats.DeliverNew(),
 		nats.Durable(queueName),
 		nats.ManualAck(),
-		nats.AckWait(22*time.Hour),
+		nats.AckWait(ACK_WAIT),
 	)
 
 	if err != nil {

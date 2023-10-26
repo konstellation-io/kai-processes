@@ -6,8 +6,9 @@ require (
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk v1.2.0
+	github.com/konstellation-io/kai-sdk/go-sdk v1.2.1
 	github.com/nats-io/nats.go v1.31.0
+	github.com/spf13/viper v1.17.0
 	github.com/stretchr/testify v1.8.4
 )
 
@@ -29,7 +30,6 @@ require (
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.17.0 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

@@ -55,15 +55,14 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		queueName,
 		func(msg *nats.Msg) {
 			kaiSDK.Logger.Info("Message received", "subject", subjectName, "queue", queueName)
-			requestMsg, err := kaiSDK.Messaging.GetRequestID(msg)
+			requestID, err := kaiSDK.Messaging.GetRequestID(msg)
 			if err != nil {
 				kaiSDK.Logger.Error(err, "Error creating request message")
 				return
 			}
 
-			requestID := uuid.New().String()
 			if retainExecutionId == "true" {
-				requestID = requestMsg.RequestId
+				requestID = uuid.New().String()
 			}
 
 			responseChannel := tr.GetResponseChannel(requestID)
@@ -94,6 +93,11 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		nats.ManualAck(),
 		nats.AckWait(22*time.Hour),
 	)
+
+	if err != nil {
+		kaiSDK.Logger.Error(err, "Error subscribing")
+		return
+	}
 
 	kaiSDK.Logger.Info("Listening to subject", "subject", subjectName, "queue", queueName)
 

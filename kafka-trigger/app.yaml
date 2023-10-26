@@ -20,7 +20,7 @@ centralized_configuration:
   process:
     bucket: process
     config:
-      brokers: 'localhost:9092, localhost:9093, localhost:9094'
-      groupID: 'kafka-group-id'
-      topic: 'topic-A'
+      brokers: 'localhost:9092'
+      groupid: 'kafka-group-id'
+      topic: 'test'
       partition: 0

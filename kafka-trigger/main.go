@@ -47,7 +47,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 	}
 	config.Brokers = strings.Split(brokers, ",")
 
-	groupID, err := kaiSDK.CentralizedConfig.GetConfig("groupID", messaging.ProcessScope)
+	groupID, err := kaiSDK.CentralizedConfig.GetConfig("groupid", messaging.ProcessScope)
 	if err != nil {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
@@ -84,11 +84,17 @@ func initializer(kaiSDK sdk.KaiSDK) {
 func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Starting kafka runner")
 
+	dialer := &kafka.Dialer{
+		// TODO
+		// SASLMechanism: sasl.Mechanism{},
+	}
+
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  config.Brokers,
 		GroupID:  config.GroupID,
 		Topic:    config.Topic,
 		MaxBytes: 10e6, // 10MB
+		Dialer:   dialer,
 	})
 
 	go func() {

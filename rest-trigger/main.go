@@ -34,7 +34,11 @@ func main() {
 
 func restInitializer(kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Initializer, loading config")
-	path, _ = kaiSDK.CentralizedConfig.GetConfig("path", messaging.ProcessScope)
+	pathConfig, err := kaiSDK.CentralizedConfig.GetConfig("path", messaging.ProcessScope)
+	if err == nil {
+		kaiSDK.Logger.Info("Initializer, config loaded", "path", pathConfig)
+		path = pathConfig
+	}
 }
 
 func restServerRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {

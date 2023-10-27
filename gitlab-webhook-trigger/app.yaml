@@ -1,8 +1,8 @@
 metadata:
   product_id: Github trigger product
-  workflow_id: Github trigger workflow
-  process_id: Github trigger process
-  version_id: Github trigger version v1.0.0
+  workflow_name: Github trigger workflow
+  process_name: Github trigger process
+  version_tag: Github trigger version v1.0.0
   base_path: '/Some/Path'
 
 nats:

@@ -11,6 +11,8 @@ on:
       - 'github-webhook-trigger/**/*'
       - 'gitlab-webhook-trigger/**/*'
       - 'cronjob-trigger/**/*'
+      - 'process-trigger/**/*'
+      - 'rest-trigger/**/*'
       - '.github/workflows/test.yaml'
     branches:
       # Destination branches
@@ -41,6 +43,12 @@ jobs:
           cronjob-trigger:
             - 'cronjob-trigger/**/*'
             - '.github/workflows/test.yaml'
+          process-trigger:
+            - 'process-trigger/**/*'
+            - '.github/workflows/test.yaml'
+          rest-trigger:
+            - 'rest-trigger/**/*'
+            - '.github/workflows/test.yaml'
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -56,6 +64,10 @@ jobs:
             changes: ${{ needs.check-folder-changes.outputs.gitlab-webhook-trigger }}
           - component: cronjob-trigger
             changes: ${{ needs.check-folder-changes.outputs.cronjob-trigger }}
+          - component: process-trigger
+            changes: ${{ needs.check-folder-changes.outputs.process-trigger }}
+          - component: rest-trigger
+            changes: ${{ needs.check-folder-changes.outputs.rest-trigger }}
     steps:
       - name: Checkout code
         if: matrix.changes == 'true'
@@ -108,6 +120,12 @@ jobs:
           - component: cronjob-trigger
             changes: ${{ needs.check-folder-changes.outputs.cronjob-trigger }}
             sonar_token_secret: CRONJOB_SONAR_TOKEN  
+          - component: process-trigger
+            changes: ${{ needs.check-folder-changes.outputs.process-trigger }}
+            sonar_token_secret: PROCESS_SONAR_TOKEN
+          - component: rest-trigger
+            changes: ${{ needs.check-folder-changes.outputs.rest-trigger }}
+            sonar_token_secret: REST_SONAR_TOKEN
     steps:
       - uses: actions/checkout@v4
         if: matrix.changes == 'true'

@@ -30,9 +30,6 @@ func main() {
 		TriggerRunner().
 		WithInitializer(initializer).
 		WithRunner(kafkaRunner).
-		WithFinalizer(func(kaiSDK sdk.KaiSDK) {
-			kaiSDK.Logger.Info("Finalizer")
-		}).
 		Run()
 }
 
@@ -84,17 +81,29 @@ func initializer(kaiSDK sdk.KaiSDK) {
 func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Starting kafka runner")
 
-	dialer := &kafka.Dialer{
-		// TODO
-		// SASLMechanism: sasl.Mechanism{},
-	}
+	var err error
+
+	// mechanism, err := scram.Mechanism(scram.SHA512, "admin", "admin-secret")
+	// if err != nil {
+	// 	kaiSDK.Logger.Error(err, "error declaring scram mechanism")
+	// 	os.Exit(1)
+	// }
+
+	// dialer := &kafka.Dialer{
+	// 	Timeout: 10 * time.Second,
+	// 	//DualStack: true,
+	// 	SASLMechanism: plain.Mechanism{
+	// 		Username: "admin",
+	// 		Password: "admin-secret",
+	// 	},
+	// }
 
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  config.Brokers,
 		GroupID:  config.GroupID,
 		Topic:    config.Topic,
 		MaxBytes: 10e6, // 10MB
-		Dialer:   dialer,
+		//Dialer:   dialer,
 	})
 
 	go func() {
@@ -123,8 +132,8 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		err := r.Close() // reader must be gracefully closed
 		if err != nil {
 			kaiSDK.Logger.Error(err, "error closing reader")
-			os.Exit(1)
 		}
+		os.Exit(1)
 	}()
 
 	// Handle sigterm and await termChan signal
@@ -132,7 +141,7 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 	<-termChan
 
-	err := r.Close() // reader must be gracefully closed
+	err = r.Close() // reader must be gracefully closed
 	if err != nil {
 		kaiSDK.Logger.Error(err, "error closing reader")
 		os.Exit(1)

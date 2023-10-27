@@ -31,7 +31,7 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	targetWorkflow, _ := kaiSDK.CentralizedConfig.GetConfig("workflow")
 	targetProcess, _ := kaiSDK.CentralizedConfig.GetConfig("process")
 
-	subjectName := fmt.Sprintf("%s_%s_%s.%s", targetProduct, targetVersion, targetWorkflow, targetProcess)
+	subjectName := fmt.Sprintf("%s_%s_%s_%s", targetProduct, targetVersion, targetWorkflow, targetProcess)
 	
 	productID := kaiSDK.Metadata.GetProduct()
 	productID = strings.ReplaceAll(strings.ToLower(productID), " ", "_")

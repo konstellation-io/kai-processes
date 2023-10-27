@@ -25,6 +25,10 @@ The configuration should be defined inside the `centralized configuration scope`
 | workflow | no        | str  | Subject to subscribe     |
 | message | yes        | bool  | Default value is true      |
 
+#### Subtopic
+
+In order to subscribe to a subtopic, process field needs to be in the form `process.subtopic`
+
 #### Example
 
 ```

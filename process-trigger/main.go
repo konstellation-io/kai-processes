@@ -115,7 +115,6 @@ func processSubscriberRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	err = s.Unsubscribe()
 	if err != nil {
 		kaiSDK.Logger.Error(err, "Error unsubscribing")
-		return
 	}
 }
 

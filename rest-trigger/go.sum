@@ -164,8 +164,8 @@ github.com/klauspost/compress v1.17.0/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQs
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
-github.com/konstellation-io/kai-sdk/go-sdk v1.2.0 h1:h5gc27QvNa5ndjvZDwXlYMvW9rReS3Jx0JZQY5JjvWQ=
-github.com/konstellation-io/kai-sdk/go-sdk v1.2.0/go.mod h1:U92zIMOAc7gSReZkiGaxA2M522urgJPuohCfsbSn9HA=
+github.com/konstellation-io/kai-sdk/go-sdk v1.2.1 h1:GwtCtSJbpPEj8BHBqpQ8rHeD/D73igRIaxhFGHVY5ZM=
+github.com/konstellation-io/kai-sdk/go-sdk v1.2.1/go.mod h1:U92zIMOAc7gSReZkiGaxA2M522urgJPuohCfsbSn9HA=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=

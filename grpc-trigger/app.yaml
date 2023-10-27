@@ -1,8 +1,8 @@
 metadata:
   product_id: GRPC Trigger product
-  workflow_id: GRPC Trigger workflow
-  process_id: GRPC Trigger process
-  version_id: GRPC Trigger version v1.0.0
+  workflow_name: GRPC Trigger workflow
+  process_name: GRPC Trigger process
+  version_tag: GRPC Trigger version v1.0.0
   base_path: "/Some/Path"
 
 nats:

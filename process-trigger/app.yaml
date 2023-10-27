@@ -1,0 +1,27 @@
+metadata:
+  product_id: Process trigger product
+  workflow_name: Process trigger workflow
+  process_name: Process trigger process
+  version_tag: Process trigger version v1.0.0
+  base_path: '/Some/Path'
+
+nats:
+  url: 'nats://localhost:4222'
+  stream: process-trigger
+  output: process-trigger-output
+
+centralized_configuration:
+  global:
+    bucket: global
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process
+    config:
+      product: product
+      version: version
+      workflow: workflow
+      process: process
+      retain-execution-id: true

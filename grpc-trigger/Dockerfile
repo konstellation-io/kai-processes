@@ -28,7 +28,6 @@ RUN adduser \
     "${USER}"
 
 WORKDIR /app
-COPY app.yaml app.yaml
 COPY config.yaml config.yaml
 
 COPY --from=builder /app/process process

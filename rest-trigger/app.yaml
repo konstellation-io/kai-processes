@@ -1,0 +1,21 @@
+metadata:
+  product_id: REST Trigger product
+  workflow_name: REST Trigger workflow
+  process_name: REST Trigger process
+  version_tag: REST Trigger version v1.0.0
+  base_path: '/Some/Path'
+
+nats:
+  url: 'nats://localhost:4222'
+  stream: trigger
+  output: rest-trigger-output
+
+centralized_configuration:
+  global:
+    bucket: global
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process

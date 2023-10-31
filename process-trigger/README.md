@@ -23,7 +23,7 @@ The configuration should be defined inside the `centralized configuration scope`
 | version | no        | str  | The version in which is the process you want to subscribe to     |
 | process | no        | str  | The process in which is the process you want to subscribe to     |
 | workflow | no        | str  | The workflow in which is the process you want to subscribe to     |
-| retain-execution-id | yes        | bool  | Default value is true, so we keep the request id we receive      |
+| retain-execution-id | yes        | bool  | Keeps the original request's id - default value is true      |
 
 #### Subtopic
 

@@ -6,7 +6,6 @@ require (
 	github.com/go-logr/logr v1.2.4
 	github.com/google/uuid v1.3.1
 	github.com/konstellation-io/kai-sdk/go-sdk v1.2.0
-	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/protobuf v1.31.0
 )

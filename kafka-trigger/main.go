@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
@@ -18,10 +20,11 @@ import (
 )
 
 var config struct {
-	Brokers   []string
-	GroupID   string
-	Topic     string
-	Partition int
+	Brokers            []string
+	GroupID            string
+	Topic              string
+	TLSEnabled         bool
+	InsecureSkipVerify bool
 }
 
 func main() {
@@ -58,52 +61,55 @@ func initializer(kaiSDK sdk.KaiSDK) {
 	}
 	config.Topic = topic
 
-	partitionConfig, err := kaiSDK.CentralizedConfig.GetConfig("partition", messaging.ProcessScope)
-	if err != nil {
-		kaiSDK.Logger.Error(err, errMsg)
-		os.Exit(1)
+	tlsEnabledConfig, err := kaiSDK.CentralizedConfig.GetConfig("tls_enabled", messaging.ProcessScope)
+	if err == nil { // optional config
+		tlsEnabled, err := strconv.ParseBool(tlsEnabledConfig)
+		if err != nil {
+			kaiSDK.Logger.Error(err, errMsg)
+			os.Exit(1)
+		}
+		config.TLSEnabled = tlsEnabled
 	}
-	partition, err := strconv.Atoi(partitionConfig)
-	if err != nil {
-		kaiSDK.Logger.Error(err, errMsg)
-		os.Exit(1)
+
+	insecureSkipVerifyConfig, err := kaiSDK.CentralizedConfig.GetConfig("insecure_skip_verify", messaging.ProcessScope)
+	if err == nil { // optional config
+		insecureSkipVerify, err := strconv.ParseBool(insecureSkipVerifyConfig)
+		if err != nil {
+			kaiSDK.Logger.Error(err, errMsg)
+			os.Exit(1)
+		}
+		config.InsecureSkipVerify = insecureSkipVerify
 	}
-	config.Partition = partition
 
 	kaiSDK.Logger.Info("Config loaded",
 		"brokers", config.Brokers,
 		"groupID", config.GroupID,
 		"topic", config.Topic,
-		"partition", config.Partition,
+		"tlsEnabled", config.TLSEnabled,
+		"insecureSkipVerify", config.InsecureSkipVerify,
 	)
 }
 
 func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	kaiSDK.Logger.Info("Starting kafka runner")
-
 	var err error
 
-	// mechanism, err := scram.Mechanism(scram.SHA512, "admin", "admin-secret")
-	// if err != nil {
-	// 	kaiSDK.Logger.Error(err, "error declaring scram mechanism")
-	// 	os.Exit(1)
-	// }
-
-	// dialer := &kafka.Dialer{
-	// 	Timeout: 10 * time.Second,
-	// 	//DualStack: true,
-	// 	SASLMechanism: plain.Mechanism{
-	// 		Username: "admin",
-	// 		Password: "admin-secret",
-	// 	},
-	// }
+	var dialer *kafka.Dialer
+	if config.TLSEnabled {
+		dialer = &kafka.Dialer{
+			Timeout:   10 * time.Second,
+			DualStack: true,
+			TLS: &tls.Config{
+				InsecureSkipVerify: config.InsecureSkipVerify,
+			},
+		}
+	}
 
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  config.Brokers,
 		GroupID:  config.GroupID,
 		Topic:    config.Topic,
 		MaxBytes: 10e6, // 10MB
-		//Dialer:   dialer,
+		Dialer:   dialer,
 	})
 
 	go func() {

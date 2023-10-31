@@ -4,11 +4,9 @@ FROM golang:1.20.3-alpine3.17 AS builder
 ENV CGO_ENABLED=0
 
 WORKDIR /app
-COPY go.mod ./
-COPY go.sum ./
+COPY go.* ./
 RUN go mod download
-COPY internal internal
-COPY main.go main.go
+COPY . .
 RUN go build -o process .
 
 FROM alpine:3.10.2
@@ -30,7 +28,6 @@ RUN adduser \
     "${USER}"
 
 WORKDIR /app
-COPY app.yaml app.yaml
 COPY config.yaml config.yaml
 
 COPY --from=builder /app/process process

@@ -10,6 +10,13 @@ nats:
   stream: kafka-trigger
   output: kafka-trigger-output
 
+minio:
+  endpoint: 'localhost:9000'
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
+  use_ssl: false
+  bucket: test-bucket
+
 centralized_configuration:
   global:
     bucket: global
@@ -19,9 +26,9 @@ centralized_configuration:
     bucket: workflow
   process:
     bucket: process
-    config:
-      brokers: 'localhost:29092'
-      groupid: 'kafka-group-id'
-      topic: 'test'
-      tls_enabled: true
-      insecure_skip_verify: true
+  config:
+    brokers: 'localhost:29092'
+    groupid: 'kafka-group-id'
+    topic: 'test'
+    tls_enabled: true
+    insecure_skip_verify: true

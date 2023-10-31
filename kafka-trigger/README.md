@@ -1,52 +1,58 @@
-# Cronjob trigger
+# Kafka trigger
 
-The cronjob trigger is a predefined KAI process that will trigger an action in a predefined time.  
+The Kafka trigger is a predefined KAI process that will stand by listening to a Kafka topic, for every message sent to the topic the
+trigger will start the workflow.
 
-TODO
+The trigger will output the topic's name and the event's data.
 
 ## How to setup
 
-The trigger requires adding two configuration options:
+The trigger uses five configuration variables, two of them are optional:
 
-- A predefined cron time with the structure `cron: * * * * * *` which equals to seconds | minutes | hours | days | months | years or "@every XT" being X a number and T a timescale for example "@every 10s"
-- The message to be sent
+- The addresses in where the brokers are available (a single string comma separated).
+- The group ID desired to be used.
+- The topic's name the trigger will be listening.
+- Enable TLS connection (optional).
+- Skip verification of trigger's SSL certificates (optional).
 
 ### Configuration
 
 The configuration should be defined inside the `centralized configuration scope`:
 
-| Key            | Optional  | Type | Value                                                                                         |
-|----------------|-----------|------|-----------------------------------------------------------------------------------------------|
-| cron | no        | str  | Cron expression     |
-| message | yes        | str  | Message to be sent in the generated events      |
+| Key         | Optional  | Type | Value                                       |
+|-------------|-----------|------|---------------------------------------------|
+| brokers     | no        | str  | Brokers' addresses (comma separated value)  |
+| groupid     | no        | str  | The groupID the listener will take          |
+| topic       | no        | str  | The topic's name                            |
+| tls_enabled | yes        | bool  | Enable TLS connection                     |
+| insecure_skip_verify | yes        | bool  | Skip SSL certificate validation  |
 
-#### Example
+#### Configuration example
 
-```
+``` yaml
 centralized_configuration:
-  process:
-    bucket: process
-    config:
-      cron: '30 * * * * *'
-      message: 'Hello world'
+  config:
+    brokers: 'localhost:29092'
+    groupid: 'kafka-group-id'
+    topic: 'test'
+    tls_enabled: true
+    insecure_skip_verify: true
 ```
 
 ### Output
 
-It triggers an event of sending a message through the module messaging in the sdk in the predefined interval of time.
+The trigger upon receiving a message, will send a key-value protobuf message with the following format:
 
-| Key       | Type | Value                                                                  |
-|-----------|------|------------------------------------------------------------------------|
-| requestID | str  | A string                                     |
-| message  | str  | The defined message if any    |
-| time     | str  | The timestamp of the generated event |
+| Key       | Type    | Value                    |
+|-----------|---------|--------------------------|
+| topic     | str     | The topic's name         |
+| message   | []byte  | The message's payload    |
 
-#### Example
+#### Output example
 
-```
+```json
 {
- "requestID: 123
- "message": "test message"
- "time": "Mon Jan 2 15:04:05 MST 2006"
+ "topic": "test-topic",
+ "message": {"json": "test"}
 }
 ```

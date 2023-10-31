@@ -23,7 +23,7 @@ The configuration should be defined inside the `centralized configuration scope`
 | version | no        | str  | Subject to subscribe     |
 | process | no        | str  | Subject to subscribe     |
 | workflow | no        | str  | Subject to subscribe     |
-| message | yes        | bool  | Default value is true      |
+| retain-execution-id | yes        | bool  | Default value is true      |
 
 #### Subtopic
 

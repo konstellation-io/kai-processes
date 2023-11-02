@@ -71,7 +71,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 		config.TLSEnabled = tlsEnabled
 	}
 
-	insecureSkipVerifyConfig, err := kaiSDK.CentralizedConfig.GetConfig("insecure_skip_verify", messaging.ProcessScope)
+	insecureSkipVerifyConfig, err := kaiSDK.CentralizedConfig.GetConfig("skip_tls_verify", messaging.ProcessScope)
 	if err == nil { // optional config
 		insecureSkipVerify, err := strconv.ParseBool(insecureSkipVerifyConfig)
 		if err != nil {
@@ -154,13 +154,13 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	}
 }
 
-func sendMessage(kaiSDK sdk.KaiSDK, topic string, message []byte) error {
+func sendMessage(kaiSDK sdk.KaiSDK, topic string, payload []byte) error {
 	requestID := uuid.New().String()
 	kaiSDK.Logger.Info("Triggering workflow", "requestID", requestID)
 
 	m, err := structpb.NewValue(map[string]interface{}{
 		"topic":   topic,
-		"message": message,
+		"payload": payload,
 	})
 	if err != nil {
 		return err

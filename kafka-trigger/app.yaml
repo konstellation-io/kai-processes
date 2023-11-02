@@ -31,4 +31,4 @@ centralized_configuration:
     groupid: 'kafka-group-id'
     topic: 'test'
     tls_enabled: true
-    insecure_skip_verify: true
+    skip_tls_verify: true

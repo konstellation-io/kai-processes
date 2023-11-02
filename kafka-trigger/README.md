@@ -24,8 +24,8 @@ The configuration should be defined inside the `centralized configuration scope`
 | brokers     | no        | str  | Brokers' addresses (comma separated value)  |
 | groupid     | no        | str  | The groupID the listener will take          |
 | topic       | no        | str  | The topic's name                            |
-| tls_enabled | yes        | bool  | Enable TLS connection                     |
-| insecure_skip_verify | yes        | bool  | Skip SSL certificate validation  |
+| tls_enabled | yes        | bool  | Enable TLS connection, defaults to false  |
+| skip_tls_verify | yes        | bool  | Skip SSL certificate validation, defaults to false  |
 
 #### Configuration example
 
@@ -36,7 +36,7 @@ centralized_configuration:
     groupid: 'kafka-group-id'
     topic: 'test'
     tls_enabled: true
-    insecure_skip_verify: true
+    skip_tls_verify: true
 ```
 
 ### Output
@@ -46,13 +46,13 @@ The trigger upon receiving a message, will send a key-value protobuf message wit
 | Key       | Type    | Value                    |
 |-----------|---------|--------------------------|
 | topic     | str     | The topic's name         |
-| message   | []byte  | The message's payload    |
+| payload   | []byte  | The event's payload    |
 
 #### Output example
 
 ```json
 {
  "topic": "test-topic",
- "message": {"json": "test"}
+ "payload": {"json": "test"}
 }
 ```

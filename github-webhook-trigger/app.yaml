@@ -11,6 +11,13 @@ nats:
   output: github-trigger-output
   object_store: object-store
 
+minio:
+  endpoint: "localhost:9000"
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
+  use_ssl: false
+  bucket: test-bucket
+
 centralized_configuration:
   global:
     bucket: global

@@ -19,11 +19,11 @@ The configuration should be defined inside the `centralized configuration scope`
 
 | Key            | Optional  | Type | Value                                                                                         |
 |----------------|-----------|------|-----------------------------------------------------------------------------------------------|
-| product | no        | str  | Subject to subscribe     |
-| version | no        | str  | Subject to subscribe     |
-| process | no        | str  | Subject to subscribe     |
-| workflow | no        | str  | Subject to subscribe     |
-| message | yes        | bool  | Default value is true      |
+| product | no        | str  | The product in which is the process you want to subscribe to     |
+| version | no        | str  | The version in which is the process you want to subscribe to     |
+| process | no        | str  | The process in which is the process you want to subscribe to     |
+| workflow | no        | str  | The workflow in which is the process you want to subscribe to     |
+| retain-execution-id | yes        | bool  | Keeps the original request's id - default value is true      |
 
 #### Subtopic
 

@@ -13,6 +13,7 @@ on:
       - 'cronjob-trigger/**/*'
       - 'process-trigger/**/*'
       - 'rest-trigger/**/*'
+      - 'kafka-trigger/**/*'
       - '.github/workflows/test.yaml'
     branches:
       # Destination branches
@@ -27,28 +28,31 @@ jobs:
       gitlab-webhook-trigger: ${{ steps.filter.outputs.gitlab-webhook-trigger }}
       cronjob-trigger: ${{ steps.filter.outputs.cronjob-trigger }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          github-webhook-trigger:
-            - 'github-webhook-trigger/**/*'
-            - '.github/workflows/test.yaml'
-          gitlab-webhook-trigger:
-            - 'gitlab-webhook-trigger/**/*'
-            - '.github/workflows/test.yaml'
-          cronjob-trigger:
-            - 'cronjob-trigger/**/*'
-            - '.github/workflows/test.yaml'
-          process-trigger:
-            - 'process-trigger/**/*'
-            - '.github/workflows/test.yaml'
-          rest-trigger:
-            - 'rest-trigger/**/*'
-            - '.github/workflows/test.yaml'
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            github-webhook-trigger:
+              - 'github-webhook-trigger/**/*'
+              - '.github/workflows/test.yaml'
+            gitlab-webhook-trigger:
+              - 'gitlab-webhook-trigger/**/*'
+              - '.github/workflows/test.yaml'
+            cronjob-trigger:
+              - 'cronjob-trigger/**/*'
+              - '.github/workflows/test.yaml'
+            process-trigger:
+              - 'process-trigger/**/*'
+              - '.github/workflows/test.yaml'
+            rest-trigger:
+              - 'rest-trigger/**/*'
+              - '.github/workflows/test.yaml'
+            kafka-trigger:
+              - 'kafka-trigger/**/*'
+              - '.github/workflows/test.yaml'
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -68,6 +72,8 @@ jobs:
             changes: ${{ needs.check-folder-changes.outputs.process-trigger }}
           - component: rest-trigger
             changes: ${{ needs.check-folder-changes.outputs.rest-trigger }}
+          - component: kafka-trigger
+            changes: ${{ needs.check-folder-changes.outputs.kafka-trigger }}
     steps:
       - name: Checkout code
         if: matrix.changes == 'true'
@@ -119,18 +125,21 @@ jobs:
             sonar_token_secret: GITLAB_SONAR_TOKEN
           - component: cronjob-trigger
             changes: ${{ needs.check-folder-changes.outputs.cronjob-trigger }}
-            sonar_token_secret: CRONJOB_SONAR_TOKEN  
+            sonar_token_secret: CRONJOB_SONAR_TOKEN
           - component: process-trigger
             changes: ${{ needs.check-folder-changes.outputs.process-trigger }}
             sonar_token_secret: PROCESS_SONAR_TOKEN
           - component: rest-trigger
             changes: ${{ needs.check-folder-changes.outputs.rest-trigger }}
             sonar_token_secret: REST_SONAR_TOKEN
+          - component: kafka-trigger
+            changes: ${{ needs.check-folder-changes.outputs.kafka-trigger }}
+            sonar_token_secret: KAFKA_SONAR_TOKEN
     steps:
       - uses: actions/checkout@v4
         if: matrix.changes == 'true'
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Download code coverage results
         if: matrix.changes == 'true'
         uses: actions/download-artifact@v3
@@ -144,5 +153,5 @@ jobs:
         with:
           projectBaseDir: ${{ matrix.component }}
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.PAT }} # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets[matrix.sonar_token_secret] }}

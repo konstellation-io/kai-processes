@@ -5,33 +5,30 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
+	"testing"
+
 	"github.com/go-logr/logr/testr"
 	"github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/kafka"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"log"
-	"sync"
-	"testing"
-)
-
-var (
-	productID = "productID"
-	ownerID   = "ownerID"
 )
 
 type MainSuite struct {
 	suite.Suite
-	kaiSdkMock     sdk.KaiSDK
-	messagingMock  *mocks.MessagingMock
-	kafkaContainer *kafka.KafkaContainer
-	brokerAddress  string
-	topic          string
-	conn           *kafkago.Conn
+	kaiSdkMock            sdk.KaiSDK
+	centralizedConfigMock *mocks.CentralizedConfigMock
+	messagingMock         *mocks.MessagingMock
+	kafkaContainer        *kafka.KafkaContainer
+	brokerAddress         string
+	topic                 string
+	conn                  *kafkago.Conn
 }
 
 func TestMainSuite(t *testing.T) {
@@ -50,14 +47,16 @@ func (s *MainSuite) SetupSuite() {
 
 	brokers, err := s.kafkaContainer.Brokers(ctx)
 
+	s.Require().Len(brokers, 1)
 	s.brokerAddress = brokers[0]
-
 	s.topic = "test-topic"
 
+	s.centralizedConfigMock = mocks.NewCentralizedConfigMock(s.T())
 	s.messagingMock = mocks.NewMessagingMock(s.T())
+
 	s.kaiSdkMock = sdk.KaiSDK{
 		Logger:            testr.NewWithOptions(s.T(), testr.Options{Verbosity: 1}),
-		CentralizedConfig: mocks.NewCentralizedConfigMock(s.T()),
+		CentralizedConfig: s.centralizedConfigMock,
 		Messaging:         s.messagingMock,
 	}
 }
@@ -68,6 +67,26 @@ func (s *MainSuite) TearDownSuite() {
 
 func (s *MainSuite) TearDownTest() {
 	config = kafkaConfig{}
+}
+func (s *MainSuite) TestInitializer() {
+	rawBrokers := "broker1,broker2"
+	brokers := []string{"broker1", "broker2"}
+	groupID := "test-group"
+	topic := "test-topic"
+
+	s.centralizedConfigMock.EXPECT().GetConfig("brokers", messaging.ProcessScope).Return(rawBrokers, nil)
+	s.centralizedConfigMock.EXPECT().GetConfig("groupid", messaging.ProcessScope).Return(groupID, nil)
+	s.centralizedConfigMock.EXPECT().GetConfig("topic", messaging.ProcessScope).Return(topic, nil)
+	s.centralizedConfigMock.EXPECT().GetConfig("tls_enabled", messaging.ProcessScope).Return("", fmt.Errorf("not found"))
+	s.centralizedConfigMock.EXPECT().GetConfig("skip_tls_verify", messaging.ProcessScope).Return("", fmt.Errorf("not found"))
+
+	initializer(s.kaiSdkMock)
+
+	s.Require().Equal(brokers, config.Brokers)
+	s.Require().Equal(groupID, config.GroupID)
+	s.Require().Equal(topic, config.Topic)
+	s.Require().False(config.TLSEnabled)
+	s.Require().False(config.InsecureSkipVerify)
 }
 
 func (s *MainSuite) TestRunnerFunc() {
@@ -108,10 +127,7 @@ func (s *MainSuite) produceKafkaMessages() {
 		Topic:    s.topic,
 		Balancer: &kafkago.LeastBytes{},
 	}
-
 	defer kafkaProducer.Close()
-
-	fmt.Printf("Producing messages into kafka...\n")
 
 	err := kafkaProducer.WriteMessages(context.Background(),
 		kafkago.Message{
@@ -119,16 +135,14 @@ func (s *MainSuite) produceKafkaMessages() {
 			Value: []byte("Hello World!"),
 		},
 	)
-	if err != nil {
-		log.Fatal("failed to write messages:", err)
-	}
+	s.Require().NoError(err)
 }
 
 func (s *MainSuite) createTestTopic() {
 	conn, err := kafkago.Dial("tcp", s.brokerAddress)
-	if err != nil {
-		panic(err.Error())
-	}
+	s.Require().NoError(err)
+
+	defer conn.Close()
 
 	topicConfigs := []kafkago.TopicConfig{
 		{
@@ -139,12 +153,5 @@ func (s *MainSuite) createTestTopic() {
 	}
 
 	err = conn.CreateTopics(topicConfigs...)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	err = conn.Close()
-	if err != nil {
-		panic(err.Error())
-	}
+	s.Require().NoError(err)
 }

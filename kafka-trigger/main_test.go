@@ -134,7 +134,8 @@ func (s *MainSuite) TestRunnerFunc() {
 	s.produceKafkaMessages()
 
 	//THEN
-	s.waitOrTimeout(&wg, 30*time.Second)
+	sendOutputLaunched := s.waitOrTimeout(&wg, 30*time.Second)
+	s.True(sendOutputLaunched)
 }
 
 func (s *MainSuite) produceKafkaMessages() {

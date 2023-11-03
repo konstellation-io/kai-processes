@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr/testr"
 	"github.com/konstellation-io/kai-sdk/go-sdk/mocks"
@@ -68,6 +69,21 @@ func (s *MainSuite) TearDownSuite() {
 func (s *MainSuite) TearDownTest() {
 	config = kafkaConfig{}
 }
+
+func (s *MainSuite) waitOrTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		wg.Wait()
+	}()
+	select {
+	case <-c:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
+}
+
 func (s *MainSuite) TestInitializer() {
 	rawBrokers := "broker1,broker2"
 	brokers := []string{"broker1", "broker2"}
@@ -118,7 +134,7 @@ func (s *MainSuite) TestRunnerFunc() {
 	s.produceKafkaMessages()
 
 	//THEN
-	wg.Wait()
+	s.waitOrTimeout(&wg, 30*time.Second)
 }
 
 func (s *MainSuite) produceKafkaMessages() {

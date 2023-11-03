@@ -19,13 +19,15 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-var config struct {
+type kafkaConfig struct {
 	Brokers            []string
 	GroupID            string
 	Topic              string
 	TLSEnabled         bool
 	InsecureSkipVerify bool
 }
+
+var config kafkaConfig
 
 func main() {
 	runner.

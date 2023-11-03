@@ -5,10 +5,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"testing"
-	"time"
-
 	"github.com/go-logr/logr/testr"
 	"github.com/konstellation-io/kai-sdk/go-sdk/mocks"
 	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
@@ -17,6 +13,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/kafka"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"log"
+	"sync"
+	"testing"
 )
 
 var (
@@ -29,7 +29,6 @@ type MainSuite struct {
 	kaiSdkMock     sdk.KaiSDK
 	messagingMock  *mocks.MessagingMock
 	kafkaContainer *kafka.KafkaContainer
-	hostAddress    string
 	brokerAddress  string
 	topic          string
 	conn           *kafkago.Conn
@@ -46,55 +45,11 @@ func (s *MainSuite) SetupSuite() {
 	s.kafkaContainer, err = kafka.RunContainer(ctx,
 		kafka.WithClusterID("test-cluster"),
 		testcontainers.WithImage("confluentinc/confluent-local:7.5.0"),
-		// testcontainers.WithConfigModifier(
-		// 	func(config *container.Config) {
-		// 		config.Env = append(config.Env, "KAFKA_AUTO_CREATE_TOPICS_ENABLE=true")
-		// 		config.ExposedPorts = nat.PortSet{
-		// 			"9092": {},
-		// 			"9093": {},
-		// 			"9094": {},
-		// 		}
-		// 	},
-		// ),
 	)
 	s.Require().NoError(err)
 
-	// req := testcontainers.ContainerRequest{
-	// 	Image:        "confluentinc/confluent-local:7.5.0",
-	// 	ExposedPorts: []string{"9092", "9093", "9094"},
-	// 	Env:          map[string]string{
-	// 		//"KAFKA_AUTO_CREATE_TOPICS_ENABLE": "true",
-	// 	},
-	// 	WaitingFor: wait.ForLog("Server started"),
-	// }
-
-	// s.kafkaContainer, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-	// 	ContainerRequest: req,
-	// 	Started:          true,
-	// })
-	// s.Require().NoError(err)
-
-	// host, err := s.kafkaContainer.Host(ctx)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// port, err := s.kafkaContainer.MappedPort(ctx, KAFKA_CLIENT_PORT)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// brokerPort, err := s.kafkaContainer.MappedPort(ctx, KAFKA_BROKER_PORT)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	brokers, err := s.kafkaContainer.Brokers(ctx)
-	fmt.Println("++++++++++++++++++++++++++")
-	fmt.Println(brokers)
 
-	// s.hostAddress = host + ":" + port.Port()
-	// s.brokerAddress = host + ":" + brokerPort.Port()
-
-	s.hostAddress = brokers[0]
 	s.brokerAddress = brokers[0]
 
 	s.topic = "test-topic"
@@ -116,14 +71,22 @@ func (s *MainSuite) TearDownTest() {
 }
 
 func (s *MainSuite) TestRunnerFunc() {
-	s.messagingMock.EXPECT().SendOutputWithRequestID(mock.Anything, mock.Anything).Return(nil)
+	// GIVEN
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	s.messagingMock.EXPECT().SendOutputWithRequestID(mock.Anything, mock.Anything).
+		RunAndReturn(func(message protoreflect.ProtoMessage, s string, s2 ...string) error {
+			wg.Done()
+
+			return nil
+		})
 
 	s.createTestTopic()
-	s.listTopics()
 
+	// WHEN
 	go func() {
 		config = kafkaConfig{
-			Brokers:            []string{s.hostAddress},
+			Brokers:            []string{s.brokerAddress},
 			GroupID:            "test-group",
 			Topic:              s.topic,
 			TLSEnabled:         false,
@@ -135,18 +98,16 @@ func (s *MainSuite) TestRunnerFunc() {
 
 	s.produceKafkaMessages()
 
-	time.Sleep(10 * time.Second)
-
+	//THEN
+	wg.Wait()
 }
 
 func (s *MainSuite) produceKafkaMessages() {
-	kafkaProducer := kafkago.NewWriter(
-		kafkago.WriterConfig{
-			Brokers:  []string{s.hostAddress},
-			Topic:    s.topic,
-			Balancer: &kafkago.LeastBytes{},
-		},
-	)
+	kafkaProducer := kafkago.Writer{
+		Addr:     kafkago.TCP(s.brokerAddress),
+		Topic:    s.topic,
+		Balancer: &kafkago.LeastBytes{},
+	}
 
 	defer kafkaProducer.Close()
 
@@ -160,32 +121,6 @@ func (s *MainSuite) produceKafkaMessages() {
 	)
 	if err != nil {
 		log.Fatal("failed to write messages:", err)
-	}
-}
-
-func (s *MainSuite) listTopics() {
-	conn, err := kafkago.Dial("tcp", s.brokerAddress)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	partitions, err := conn.ReadPartitions()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	m := map[string]struct{}{}
-
-	for _, p := range partitions {
-		m[p.Topic] = struct{}{}
-	}
-	for k := range m {
-		fmt.Println(k)
-	}
-
-	err = conn.Close()
-	if err != nil {
-		panic(err.Error())
 	}
 }
 

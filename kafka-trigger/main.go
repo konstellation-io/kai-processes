@@ -19,6 +19,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+const dialerTimeout = 10 * time.Second
+
 type kafkaConfig struct {
 	Brokers            []string
 	GroupID            string
@@ -96,7 +98,7 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	var dialer *kafka.Dialer
 	if config.TLSEnabled {
 		dialer = &kafka.Dialer{
-			Timeout:   10 * time.Second,
+			Timeout:   dialerTimeout,
 			DualStack: true,
 			TLS: &tls.Config{
 				InsecureSkipVerify: config.InsecureSkipVerify,

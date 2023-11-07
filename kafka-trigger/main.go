@@ -93,8 +93,6 @@ func initializer(kaiSDK sdk.KaiSDK) {
 }
 
 func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
-	var err error
-
 	var dialer *kafka.Dialer
 	if config.TLSEnabled {
 		dialer = &kafka.Dialer{
@@ -113,6 +111,7 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 		MaxBytes: 10e6, // 10MB
 		Dialer:   dialer,
 	})
+	defer r.Close()
 
 	go func() {
 		for {
@@ -137,10 +136,6 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 			}
 		}
 
-		err := r.Close() // reader must be gracefully closed
-		if err != nil {
-			kaiSDK.Logger.Error(err, "error closing reader")
-		}
 		os.Exit(1)
 	}()
 
@@ -148,12 +143,6 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 	<-termChan
-
-	err = r.Close() // reader must be gracefully closed
-	if err != nil {
-		kaiSDK.Logger.Error(err, "error closing reader")
-		os.Exit(1)
-	}
 }
 
 func sendMessage(kaiSDK sdk.KaiSDK, topic string, payload []byte) error {

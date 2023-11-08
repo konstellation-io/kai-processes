@@ -1,0 +1,34 @@
+metadata:
+  product_id: Kafka trigger product
+  workflow_name: Kafka trigger workflow
+  process_name: Kafka trigger process
+  version_tag: Kafka trigger version v1.0.0
+  base_path: '/Some/Path'
+
+nats:
+  url: 'nats://localhost:4222'
+  stream: kafka-trigger
+  output: kafka-trigger-output
+
+minio:
+  endpoint: 'localhost:9000'
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
+  use_ssl: false
+  bucket: test-bucket
+
+centralized_configuration:
+  global:
+    bucket: global
+  product:
+    bucket: product
+  workflow:
+    bucket: workflow
+  process:
+    bucket: process
+  config:
+    brokers: 'localhost:29092'
+    groupid: 'kafka-group-id'
+    topic: 'test'
+    tls_enabled: true
+    skip_tls_verify: true

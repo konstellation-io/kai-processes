@@ -6,7 +6,7 @@ require (
 	bou.ke/monkey v1.0.2
 	github.com/go-logr/logr v1.2.4
 	github.com/go-playground/webhooks/v6 v6.2.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/konstellation-io/kai-sdk/go-sdk v1.2.2
 	github.com/nats-io/nats.go v1.31.0
 	github.com/stretchr/testify v1.8.4

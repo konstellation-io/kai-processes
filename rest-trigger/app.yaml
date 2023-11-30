@@ -1,9 +1,9 @@
 metadata:
-  product_id: REST Trigger product
-  workflow_name: REST Trigger workflow
-  process_name: REST Trigger process
-  version_tag: REST Trigger version v1.0.0
-  base_path: '/Some/Path'
+  product_id: REST_Trigger_product
+  version_tag: v1.0.0
+  workflow_name: REST_Trigger_workflow
+  workflow_type: data
+  process_name: REST_Trigger_process
 
 nats:
   url: 'nats://localhost:4222'
@@ -16,6 +16,28 @@ minio:
   access_key_secret: minioadmin
   use_ssl: false
   bucket: test-bucket
+
+auth:
+  internal_folder: ".kai"
+  endpoint: "http://auth.kai.local"
+  client: "kai"
+  client_secret: "kai_pwd"
+  realm: "konstellation"
+
+predictions:
+  endpoint: localhost:6379
+  username: default
+  password: redispw
+  index_key: predictionsIdx
+
+model_registry:
+  folder_name: ".models"
+
+measurements:
+  endpoint: "localhost:4317"
+  insecure: true
+  timeout: 5
+  metrics_interval: 10
 
 centralized_configuration:
   global:

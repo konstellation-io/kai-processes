@@ -1,9 +1,9 @@
 metadata:
-  product_id: GRPC Trigger product
-  workflow_name: GRPC Trigger workflow
-  process_name: GRPC Trigger process
-  version_tag: GRPC Trigger version v1.0.0
-  base_path: "/Some/Path"
+  product_id: GRPC_Trigger_product
+  version_tag: v1.0.0
+  workflow_name: GRPC_Trigger_workflow
+  workflow_type: data_workflow
+  process_name: GRPC_Trigger_process
 
 nats:
   url: "nats://localhost:4222"
@@ -16,6 +16,28 @@ minio:
   access_key_secret: minioadmin
   use_ssl: false
   bucket: test-bucket
+
+auth:
+  internal_folder: ".kai"
+  endpoint: "http://auth.kai.local"
+  client: "kai"
+  client_secret: "kai_pwd"
+  realm: "konstellation"
+
+predictions:
+  endpoint: localhost:6379
+  username: default
+  password: redispw
+  index_key: predictionsIdx
+
+model_registry:
+  folder_name: ".models"
+
+measurements:
+  endpoint: "localhost:4317"
+  insecure: true
+  timeout: 5
+  metrics_interval: 10
 
 centralized_configuration:
   global:

@@ -1,9 +1,9 @@
 metadata:
-  product_id: Cronjob trigger product
-  workflow_name: Cronjob trigger workflow
-  process_name: Cronjob trigger process
-  version_tag: Cronjob trigger version v1.0.0
-  base_path: '/Some/Path'
+  product_id: Cronjob_trigger_product
+  version_tag: v1.0.0
+  workflow_name: Cronjob_trigger_workflow
+  workflow_type: training_workflow
+  process_name: Cronjob_trigger_process
 
 nats:
   url: 'nats://localhost:4222'
@@ -16,6 +16,28 @@ minio:
   access_key_secret: minioadmin
   use_ssl: false
   bucket: test-bucket
+
+auth:
+  internal_folder: ".kai"
+  endpoint: "http://auth.kai.local"
+  client: "kai"
+  client_secret: "kai_pwd"
+  realm: "konstellation"
+
+predictions:
+  endpoint: localhost:6379
+  username: default
+  password: redispw
+  index_key: predictionsIdx
+
+model_registry:
+  folder_name: ".models"
+
+measurements:
+  endpoint: "localhost:4317"
+  insecure: true
+  timeout: 5
+  metrics_interval: 10
 
 centralized_configuration:
   global:

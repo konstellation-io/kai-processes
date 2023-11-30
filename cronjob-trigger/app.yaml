@@ -2,7 +2,7 @@ metadata:
   product_id: Cronjob_trigger_product
   version_tag: v1.0.0
   workflow_name: Cronjob_trigger_workflow
-  workflow_type: training_workflow
+  workflow_type: training
   process_name: Cronjob_trigger_process
 
 nats:

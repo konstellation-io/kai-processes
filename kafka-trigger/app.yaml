@@ -2,7 +2,7 @@ metadata:
   product_id: Kafka_trigger_product
   version_tag: v1.0.0
   workflow_name: Kafka_trigger_workflow
-  workflow_type: serving_workflow
+  workflow_type: serving
   process_name: Kafka_trigger_process
 
 nats:

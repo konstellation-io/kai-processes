@@ -1,16 +1,3 @@
-FROM golang:1.20.3-alpine3.17 AS builder
-
-# Build the binary statically.
-ENV CGO_ENABLED=0
-
-WORKDIR /app
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
-COPY internal internal
-COPY main.go main.go
-RUN go build -o process .
-
 FROM alpine:3.10.2
 
 # Create kai user.
@@ -30,9 +17,10 @@ RUN adduser \
     "${USER}"
 
 WORKDIR /app
+COPY app.yaml app.yaml
 COPY config.yaml config.yaml
 
-COPY --from=builder /app/process process
+COPY build/process process
 
 RUN chown -R kai:0 /app \
     && chmod -R g+w /app \

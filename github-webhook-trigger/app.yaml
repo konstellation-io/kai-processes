@@ -1,15 +1,44 @@
 metadata:
-  product_id: Github trigger product
-  workflow_id: Github trigger workflow
-  process_id: Github trigger process
-  version_id: Github trigger version v1.0.0
-  base_path: '/Some/Path'
+  product_id: Github_trigger_product
+  version_tag: v1.0.0
+  workflow_name: Github_trigger_workflow
+  workflow_type: data
+  process_name: Github_trigger_process
 
 nats:
   url: 'nats://localhost:4222'
   stream: github-trigger
   output: github-trigger-output
   object_store: object-store
+
+minio:
+  endpoint: "localhost:9000"
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
+  use_ssl: false
+  bucket: test-bucket
+
+auth:
+  internal_folder: ".kai"
+  endpoint: "http://auth.kai.local"
+  client: "kai"
+  client_secret: "kai_pwd"
+  realm: "konstellation"
+
+predictions:
+  endpoint: localhost:6379
+  username: default
+  password: redispw
+  index_key: predictionsIdx
+
+model_registry:
+  folder_name: ".models"
+
+measurements:
+  endpoint: "localhost:4317"
+  insecure: true
+  timeout: 5
+  metrics_interval: 10
 
 centralized_configuration:
   global:

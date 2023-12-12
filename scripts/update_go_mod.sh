@@ -19,4 +19,19 @@ echo "Tidy grpc trigger go.mod..."
 cd grpc-trigger
 go mod tidy
 
+cd ..
+echo "Tidy kafka trigger go.mod..."
+cd kafka-trigger
+go mod tidy
+
+cd ..
+echo "Tidy process trigger go.mod..."
+cd process-trigger
+go mod tidy
+
+cd ..
+echo "Tidy rest trigger go.mod..."
+cd rest-trigger
+go mod tidy
+
 echo "Done"

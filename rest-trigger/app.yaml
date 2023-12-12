@@ -28,7 +28,7 @@ predictions:
   endpoint: localhost:6379
   username: default
   password: redispw
-  index_key: predictionsIdx
+  index: predictionsIdx
 
 model_registry:
   folder_name: ".models"

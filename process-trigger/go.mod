@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.4.0
-	github.com/konstellation-io/kai-sdk/go-sdk v1.3.0
+	github.com/konstellation-io/kai-sdk/go-sdk v1.3.2
 	github.com/nats-io/nats.go v1.31.0
 	github.com/spf13/viper v1.17.0
 )
@@ -69,7 +69,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

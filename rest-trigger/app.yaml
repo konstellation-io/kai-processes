@@ -11,6 +11,7 @@ nats:
   output: rest-trigger-output
 
 minio:
+  internal_folder: ".kai"
   endpoint: "localhost:9000"
   access_key_id: minioadmin
   access_key_secret: minioadmin
@@ -18,7 +19,6 @@ minio:
   bucket: test-bucket
 
 auth:
-  internal_folder: ".kai"
   endpoint: "http://auth.kai.local"
   client: "kai"
   client_secret: "kai_pwd"

@@ -29,7 +29,7 @@ type kafkaConfig struct {
 	InsecureSkipVerify bool
 }
 
-var config kafkaConfig
+var config kafkaConfig //nolint: gochecknoglobals
 
 func main() {
 	runner.
@@ -44,11 +44,13 @@ func initializer(kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Initializer")
 
 	var errMsg = "error getting config"
+
 	brokers, err := kaiSDK.CentralizedConfig.GetConfig("brokers", messaging.ProcessScope)
 	if err != nil {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
 	}
+
 	config.Brokers = strings.Split(brokers, ",")
 
 	groupID, err := kaiSDK.CentralizedConfig.GetConfig("groupid", messaging.ProcessScope)
@@ -56,6 +58,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
 	}
+
 	config.GroupID = groupID
 
 	topic, err := kaiSDK.CentralizedConfig.GetConfig("topic", messaging.ProcessScope)
@@ -63,6 +66,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
 	}
+
 	config.Topic = topic
 
 	tlsEnabledConfig, err := kaiSDK.CentralizedConfig.GetConfig("tls_enabled", messaging.ProcessScope)
@@ -72,6 +76,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 			kaiSDK.Logger.Error(err, errMsg)
 			os.Exit(1)
 		}
+
 		config.TLSEnabled = tlsEnabled
 	}
 
@@ -82,6 +87,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 			kaiSDK.Logger.Error(err, errMsg)
 			os.Exit(1)
 		}
+
 		config.InsecureSkipVerify = insecureSkipVerify
 	}
 
@@ -101,7 +107,7 @@ func kafkaRunner(tr *trigger.Runner, kaiSDK sdk.KaiSDK) {
 			Timeout:   dialerTimeout,
 			DualStack: true,
 			TLS: &tls.Config{
-				InsecureSkipVerify: config.InsecureSkipVerify,
+				InsecureSkipVerify: config.InsecureSkipVerify, //nolint: gosec
 			},
 		}
 	}

@@ -80,7 +80,12 @@ func (s *server) Trigger(ctx context.Context, req *triggerpb.Request) (*triggerp
 		s.kaiSDK.Logger.Error(err, "error while creating Value from Any")
 		return nil, err
 	}
-	response.UnmarshalTo(responsePb)
+
+	err = response.UnmarshalTo(responsePb)
+	if err != nil {
+		s.kaiSDK.Logger.Error(err, "error while unmarshalling response")
+		return nil, err
+	}
 
 	responsePbJSON, err := responsePb.MarshalJSON()
 	if err != nil {

@@ -137,10 +137,11 @@ func unmarshalResponse(response *anypb.Any) (int, string, error) {
 	}
 
 	responsePb := new(structpb.Value)
-	if err := response.UnmarshalTo(responsePb); err != nil {
+
+	err := response.UnmarshalTo(responsePb)
+	if err != nil {
 		return 0, "", err
 	}
-	response.UnmarshalTo(responsePb)
 
 	responsePbJSON, err := responsePb.MarshalJSON()
 	if err != nil {

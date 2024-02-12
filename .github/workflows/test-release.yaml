@@ -1,4 +1,4 @@
-name: Test
+name: Test and Release
 on:
   push:
     branches:
@@ -100,7 +100,7 @@ jobs:
         working-directory: ./${{ matrix.component }}
       - name: Archive code coverage results
         if: matrix.changes == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report-${{ matrix.component }}
           path: |
@@ -142,7 +142,7 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Download code coverage results
         if: matrix.changes == 'true'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage-report-${{ matrix.component }}
           path: |
@@ -155,3 +155,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }} # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets[matrix.sonar_token_secret] }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+      - sonarcloud
+    if: github.ref_name == 'main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "19"
+      - name: Run semantic release
+        run: |
+          npm install
+          npx multi-semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}

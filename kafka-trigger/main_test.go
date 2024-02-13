@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/go-logr/logr/testr"
-	"github.com/konstellation-io/kai-sdk/go-sdk/mocks"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/mocks"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -90,11 +90,11 @@ func (s *MainSuite) TestInitializer() {
 	groupID := "test-group"
 	topic := "test-topic"
 
-	s.centralizedConfigMock.EXPECT().GetConfig("brokers", messaging.ProcessScope).Return(rawBrokers, nil)
-	s.centralizedConfigMock.EXPECT().GetConfig("groupid", messaging.ProcessScope).Return(groupID, nil)
-	s.centralizedConfigMock.EXPECT().GetConfig("topic", messaging.ProcessScope).Return(topic, nil)
-	s.centralizedConfigMock.EXPECT().GetConfig("tls_enabled", messaging.ProcessScope).Return("", fmt.Errorf("not found"))
-	s.centralizedConfigMock.EXPECT().GetConfig("skip_tls_verify", messaging.ProcessScope).Return("", fmt.Errorf("not found"))
+	s.centralizedConfigMock.EXPECT().GetConfig("brokers", centralizedConfiguration.ProcessScope).Return(rawBrokers, nil)
+	s.centralizedConfigMock.EXPECT().GetConfig("groupid", centralizedConfiguration.ProcessScope).Return(groupID, nil)
+	s.centralizedConfigMock.EXPECT().GetConfig("topic", centralizedConfiguration.ProcessScope).Return(topic, nil)
+	s.centralizedConfigMock.EXPECT().GetConfig("tls_enabled", centralizedConfiguration.ProcessScope).Return("", fmt.Errorf("not found"))
+	s.centralizedConfigMock.EXPECT().GetConfig("skip_tls_verify", centralizedConfiguration.ProcessScope).Return("", fmt.Errorf("not found"))
 
 	initializer(s.kaiSdkMock)
 

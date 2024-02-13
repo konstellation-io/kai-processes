@@ -14,9 +14,9 @@ import (
 	"bou.ke/monkey"
 	"github.com/go-logr/logr/testr"
 	"github.com/go-playground/webhooks/v6/github"
-	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/v2/mocks"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -65,8 +65,8 @@ func (s *GithubWebhookSuite) TestInitializer() {
 	rawEvents := "push,pull_request ,release,workflow_run,workflow_dispatch"
 	githubSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", centralizedConfiguration.ProcessScope).Return(githubSecret, nil)
 
 	go func() {
 		err := s.githubWebhook.InitWebhook(s.kaiSdk)
@@ -79,7 +79,7 @@ func (s *GithubWebhookSuite) TestInitializer() {
 }
 
 func (s *GithubWebhookSuite) TestInitializerNoEventConfigError() {
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return("", nats.ErrKeyNotFound)
 
 	err := s.githubWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)
@@ -88,8 +88,8 @@ func (s *GithubWebhookSuite) TestInitializerNoEventConfigError() {
 func (s *GithubWebhookSuite) TestInitializerNoGithubSecretError() {
 	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", centralizedConfiguration.ProcessScope).Return("", nats.ErrKeyNotFound)
 
 	err := s.githubWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)
@@ -99,8 +99,8 @@ func (s *GithubWebhookSuite) TestInitializerEventNotSupportedError() {
 	rawEvents := "push, pull_request, release, workflow_run, workflow_dispatch, unsupported"
 	githubSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", centralizedConfiguration.ProcessScope).Return(githubSecret, nil)
 
 	err := s.githubWebhook.InitWebhook(s.kaiSdk)
 	s.Require().Error(err)
@@ -244,8 +244,8 @@ func (s *GithubWebhookSuite) TestInitWebhookCreatingWebhookError() {
 	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
 	githubSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nil)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", centralizedConfiguration.ProcessScope).Return(githubSecret, nil)
 
 	patch := monkey.Patch(github.New, fakeNew)
 	defer patch.Unpatch()
@@ -258,8 +258,8 @@ func (s *GithubWebhookSuite) TestInitWebhookGetConfigError() {
 	rawEvents := "push,pull_request,release,workflow_run,workflow_dispatch"
 	githubSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "github_secret", messaging.ProcessScope).Return(githubSecret, nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(rawEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "github_secret", centralizedConfiguration.ProcessScope).Return(githubSecret, nats.ErrKeyNotFound)
 
 	err := s.githubWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)

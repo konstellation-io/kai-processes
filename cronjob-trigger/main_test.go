@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/go-logr/logr/testr"
-	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/v2/mocks"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -50,8 +50,8 @@ func (s *MainSuite) TestInitializer() {
 }
 
 func (s *MainSuite) TestCronjobRunnerFunc() {
-	s.centralizedConfigMock.On("GetConfig", "cron", messaging.ProcessScope).Return("@every 1s", nil)
-	s.centralizedConfigMock.On("GetConfig", "message", messaging.ProcessScope).Return("test message", nil)
+	s.centralizedConfigMock.On("GetConfig", "cron", centralizedConfiguration.ProcessScope).Return("@every 1s", nil)
+	s.centralizedConfigMock.On("GetConfig", "message", centralizedConfiguration.ProcessScope).Return("test message", nil)
 	s.messagingMock.On("SendOutputWithRequestID", mock.Anything, mock.Anything).Return(nil)
 
 	go func() {

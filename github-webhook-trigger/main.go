@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/konstellation-io/kai-processes/github-webhook-trigger/internal/webhook"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner/trigger"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
 )
 
 func initializer(kaiSDK sdk.KaiSDK) {

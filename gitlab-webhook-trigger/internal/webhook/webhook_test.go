@@ -14,9 +14,9 @@ import (
 	"bou.ke/monkey"
 	"github.com/go-logr/logr/testr"
 	"github.com/go-playground/webhooks/v6/gitlab"
-	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/mocks"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	sdkMocks "github.com/konstellation-io/kai-sdk/go-sdk/v2/mocks"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -66,8 +66,8 @@ func (s *GitlabWebhookSuite) TearDownTest() {
 func (s *GitlabWebhookSuite) TestInitializer() {
 	gitlabSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(_rawTestEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", messaging.ProcessScope).Return(gitlabSecret, nil)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(_rawTestEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", centralizedConfiguration.ProcessScope).Return(gitlabSecret, nil)
 
 	go func() {
 		err := s.gitlabWebhook.InitWebhook(s.kaiSdk)
@@ -80,15 +80,15 @@ func (s *GitlabWebhookSuite) TestInitializer() {
 }
 
 func (s *GitlabWebhookSuite) TestInitializerNoEventConfigError() {
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return("", nats.ErrKeyNotFound)
 
 	err := s.gitlabWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)
 }
 
 func (s *GitlabWebhookSuite) TestInitializerNoGitlabSecretError() {
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(_rawTestEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", messaging.ProcessScope).Return("", nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(_rawTestEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", centralizedConfiguration.ProcessScope).Return("", nats.ErrKeyNotFound)
 
 	err := s.gitlabWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)
@@ -98,8 +98,8 @@ func (s *GitlabWebhookSuite) TestInitializerEventNotSupportedError() {
 	rawEventsWrong := "push,pull_request,release,workflow_run,workflow_dispatch"
 	gitlabSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(rawEventsWrong, nil)
-	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", messaging.ProcessScope).Return(gitlabSecret, nil)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(rawEventsWrong, nil)
+	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", centralizedConfiguration.ProcessScope).Return(gitlabSecret, nil)
 
 	err := s.gitlabWebhook.InitWebhook(s.kaiSdk)
 	s.Require().Error(err)
@@ -233,8 +233,8 @@ func (s *GitlabWebhookSuite) TestInitWebhookCreatingWebhookError() {
 
 	gitlabSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(_rawTestEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", messaging.ProcessScope).Return(gitlabSecret, nil)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(_rawTestEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", centralizedConfiguration.ProcessScope).Return(gitlabSecret, nil)
 
 	patch := monkey.Patch(gitlab.New, fakeNew)
 	defer patch.Unpatch()
@@ -246,8 +246,8 @@ func (s *GitlabWebhookSuite) TestInitWebhookCreatingWebhookError() {
 func (s *GitlabWebhookSuite) TestInitWebhookGetConfigError() {
 	gitlabSecret := "mockedSecret"
 
-	s.centralizedConfigMock.On("GetConfig", "webhook_events", messaging.ProcessScope).Return(_rawTestEvents, nil)
-	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", messaging.ProcessScope).Return(gitlabSecret, nats.ErrKeyNotFound)
+	s.centralizedConfigMock.On("GetConfig", "webhook_events", centralizedConfiguration.ProcessScope).Return(_rawTestEvents, nil)
+	s.centralizedConfigMock.On("GetConfig", "gitlab_secret", centralizedConfiguration.ProcessScope).Return(gitlabSecret, nats.ErrKeyNotFound)
 
 	err := s.gitlabWebhook.InitWebhook(s.kaiSdk)
 	s.Assert().Error(err)

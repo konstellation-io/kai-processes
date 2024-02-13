@@ -4,6 +4,7 @@ metadata:
   workflow_name: REST_Trigger_workflow
   workflow_type: data
   process_name: REST_Trigger_process
+  process_type: trigger
 
 nats:
   url: 'nats://localhost:4222'

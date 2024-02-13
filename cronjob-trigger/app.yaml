@@ -4,6 +4,7 @@ metadata:
   workflow_name: Cronjob_trigger_workflow
   workflow_type: training
   process_name: Cronjob_trigger_process
+  process_type: trigger
 
 nats:
   url: 'nats://localhost:4222'

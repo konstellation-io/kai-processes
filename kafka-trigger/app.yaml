@@ -4,6 +4,7 @@ metadata:
   workflow_name: Kafka_trigger_workflow
   workflow_type: serving
   process_name: Kafka_trigger_process
+  process_type: trigger
 
 nats:
   url: 'nats://localhost:4222'

@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk v1.3.2
+	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.0.1
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 )

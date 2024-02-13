@@ -13,10 +13,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner/trigger"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -34,7 +34,7 @@ func main() {
 
 func restInitializer(kaiSDK sdk.KaiSDK) {
 	kaiSDK.Logger.Info("Initializer, loading config")
-	pathConfig, err := kaiSDK.CentralizedConfig.GetConfig("path", messaging.ProcessScope)
+	pathConfig, err := kaiSDK.CentralizedConfig.GetConfig("path", centralizedConfiguration.ProcessScope)
 	if err == nil {
 		kaiSDK.Logger.Info("Initializer, config loaded", "path", pathConfig)
 		path = pathConfig

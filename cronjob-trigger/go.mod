@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-logr/logr v1.3.0
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk v1.3.2
+	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.0.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/protobuf v1.31.0

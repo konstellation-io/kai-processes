@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner/trigger"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	"github.com/segmentio/kafka-go"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -45,7 +45,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 
 	var errMsg = "error getting config"
 
-	brokers, err := kaiSDK.CentralizedConfig.GetConfig("brokers", messaging.ProcessScope)
+	brokers, err := kaiSDK.CentralizedConfig.GetConfig("brokers", centralizedConfiguration.ProcessScope)
 	if err != nil {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
@@ -53,7 +53,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 
 	config.Brokers = strings.Split(brokers, ",")
 
-	groupID, err := kaiSDK.CentralizedConfig.GetConfig("groupid", messaging.ProcessScope)
+	groupID, err := kaiSDK.CentralizedConfig.GetConfig("groupid", centralizedConfiguration.ProcessScope)
 	if err != nil {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
@@ -61,7 +61,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 
 	config.GroupID = groupID
 
-	topic, err := kaiSDK.CentralizedConfig.GetConfig("topic", messaging.ProcessScope)
+	topic, err := kaiSDK.CentralizedConfig.GetConfig("topic", centralizedConfiguration.ProcessScope)
 	if err != nil {
 		kaiSDK.Logger.Error(err, errMsg)
 		os.Exit(1)
@@ -69,7 +69,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 
 	config.Topic = topic
 
-	tlsEnabledConfig, err := kaiSDK.CentralizedConfig.GetConfig("tls_enabled", messaging.ProcessScope)
+	tlsEnabledConfig, err := kaiSDK.CentralizedConfig.GetConfig("tls_enabled", centralizedConfiguration.ProcessScope)
 	if err == nil { // optional config
 		tlsEnabled, err := strconv.ParseBool(tlsEnabledConfig)
 		if err != nil {
@@ -80,7 +80,7 @@ func initializer(kaiSDK sdk.KaiSDK) {
 		config.TLSEnabled = tlsEnabled
 	}
 
-	insecureSkipVerifyConfig, err := kaiSDK.CentralizedConfig.GetConfig("skip_tls_verify", messaging.ProcessScope)
+	insecureSkipVerifyConfig, err := kaiSDK.CentralizedConfig.GetConfig("skip_tls_verify", centralizedConfiguration.ProcessScope)
 	if err == nil { // optional config
 		insecureSkipVerify, err := strconv.ParseBool(insecureSkipVerifyConfig)
 		if err != nil {

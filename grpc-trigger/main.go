@@ -8,9 +8,9 @@ import (
 	"syscall"
 
 	"github.com/google/uuid"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner"
-	"github.com/konstellation-io/kai-sdk/go-sdk/runner/trigger"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/runner/trigger"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/structpb"

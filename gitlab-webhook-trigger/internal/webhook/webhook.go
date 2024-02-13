@@ -12,9 +12,8 @@ import (
 
 	"github.com/go-playground/webhooks/v6/gitlab"
 	"github.com/google/uuid"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
-	centralizedconfiguration "github.com/konstellation-io/kai-sdk/go-sdk/sdk/centralized-configuration"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk/messaging"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
+	centralizedConfiguration "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk/centralized-configuration"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -96,13 +95,13 @@ func (gw *GitlabWebhook) InitWebhook(kaiSDK sdk.KaiSDK) error {
 }
 
 func getConfig(kaiSDK sdk.KaiSDK) (webhookEvents, gitlabSecret string, err error) {
-	webhookEvents, err = kaiSDK.CentralizedConfig.GetConfig("webhook_events", messaging.ProcessScope)
+	webhookEvents, err = kaiSDK.CentralizedConfig.GetConfig("webhook_events", centralizedConfiguration.ProcessScope)
 	if err != nil {
 		return "", "", err
 	}
 
-	gitlabSecret, err = kaiSDK.CentralizedConfig.GetConfig("gitlab_secret", messaging.ProcessScope)
-	if err != nil && !errors.Is(err, centralizedconfiguration.ErrKeyNotFound) {
+	gitlabSecret, err = kaiSDK.CentralizedConfig.GetConfig("gitlab_secret", centralizedConfiguration.ProcessScope)
+	if err != nil && !errors.Is(err, centralizedConfiguration.ErrKeyNotFound) {
 		return "", "", err
 	}
 

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/webhooks/v6/github"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
 )
 
 type GithubWebhookTestExporter struct{}

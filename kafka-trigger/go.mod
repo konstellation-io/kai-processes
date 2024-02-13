@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk v1.3.2
+	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.0.1
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go/modules/kafka v0.26.0
 	google.golang.org/protobuf v1.31.0
@@ -50,7 +50,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
-	github.com/opencontainers/runc v1.1.5 // indirect
+	github.com/opencontainers/runc v1.1.12 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

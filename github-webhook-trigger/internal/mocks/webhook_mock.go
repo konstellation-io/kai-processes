@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	sdk "github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	sdk "github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
 	mock "github.com/stretchr/testify/mock"
 )
 

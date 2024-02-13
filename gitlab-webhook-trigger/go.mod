@@ -7,7 +7,7 @@ require (
 	github.com/go-logr/logr v1.3.0
 	github.com/go-playground/webhooks/v6 v6.2.0
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk v1.3.2
+	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.0.1
 	github.com/nats-io/nats.go v1.31.0
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/protobuf v1.31.0

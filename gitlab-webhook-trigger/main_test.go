@@ -9,7 +9,7 @@ import (
 
 	"bou.ke/monkey"
 	"github.com/konstellation-io/kai-processes/gitlab-webhook-trigger/internal/mocks"
-	"github.com/konstellation-io/kai-sdk/go-sdk/sdk"
+	"github.com/konstellation-io/kai-sdk/go-sdk/v2/sdk"
 	"github.com/stretchr/testify/suite"
 )
 

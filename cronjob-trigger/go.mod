@@ -1,6 +1,6 @@
 module github.com/konstellation-io/kai-processes/cronjob-trigger
 
-go 1.20
+go 1.22
 
 require (
 	github.com/go-logr/logr v1.3.0

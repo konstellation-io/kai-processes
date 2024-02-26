@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.0.1
+	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.1.1
 	google.golang.org/protobuf v1.31.0
 )
 

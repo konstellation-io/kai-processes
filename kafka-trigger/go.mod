@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/google/uuid v1.3.1
-	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.0.1
+	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.1.1
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go/modules/kafka v0.26.0
 	google.golang.org/protobuf v1.31.0

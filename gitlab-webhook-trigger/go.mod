@@ -10,7 +10,7 @@ require (
 	github.com/konstellation-io/kai-sdk/go-sdk/v2 v2.1.1
 	github.com/nats-io/nats.go v1.31.0
 	github.com/stretchr/testify v1.8.4
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
